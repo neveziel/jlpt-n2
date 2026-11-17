@@ -205,6 +205,8 @@ ol.rules li{margin-bottom:8px;font-size:14px}
 /* listening */
 .player{display:flex;gap:8px;margin:12px 0 6px}
 .player .btn{flex:1}
+.btn.playing{box-shadow:0 0 0 3px rgba(47,109,246,.18)}
+.script .sp .spsay.playing{opacity:1;border-color:var(--accent);color:var(--accent)}
 .script{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;line-height:1.9;margin-top:10px}
 .script .sp{display:flex;gap:8px;margin-bottom:9px;align-items:flex-start}
 .script .sp b{flex:0 0 26px;color:var(--accent);font-size:12px;padding-top:4px}
@@ -442,6 +444,76 @@ nav.tabbar button.on{color:var(--accent)}
   }
   function stopSpeak() { if (synth) { try { synth.cancel(); } catch (e) { } } }
 
+  /* ---------- real Japanese audio (edge-tts MP3 on GitHub Pages) ----------
+     iPhone Safari does not play speechSynthesis (silent-mode / voice rules),
+     so the listening drills play a pre-rendered MP3 dialogue instead. The
+     speech engine stays as the fallback for file:// or a failed load. */
+  var curAudio = null, curBtn = null, audioWarned = false;
+  var canAudio = (function () {
+    try {
+      if (typeof Audio === 'undefined') return false;
+      if (typeof location !== 'undefined' && /^file:/i.test(location.protocol || '')) return false;
+      return true;
+    } catch (e) { return false; }
+  })();
+  function setPlaying(btn, on) {
+    if (!btn) return;
+    if (on) {
+      if (!btn.getAttribute('data-lbl')) btn.setAttribute('data-lbl', btn.textContent);
+      btn.classList.add('playing');
+      btn.textContent = '♪ 재생 중';
+    } else {
+      btn.classList.remove('playing');
+      var l = btn.getAttribute('data-lbl');
+      if (l) btn.textContent = l;
+    }
+  }
+  function stopAudio() {
+    if (curAudio) {
+      try { curAudio.pause(); } catch (e) { }
+      try { curAudio.currentTime = 0; } catch (e) { }
+      curAudio = null;
+    }
+    if (curBtn) { setPlaying(curBtn, false); curBtn = null; }
+  }
+  function stopSound() { stopAudio(); stopSpeak(); }
+  function playMp3(url, btn, fallback) {
+    stopSound();
+    if (!canAudio) { if (fallback) fallback(); return; }
+    var a;
+    try { a = new Audio(url); } catch (e) { if (fallback) fallback(); return; }
+    a.preload = 'auto';
+    try { a.playbackRate = Number(S.rate) || 1; } catch (e) { }
+    var done = false;
+    var fail = function () {
+      if (done) return; done = true;
+      if (curAudio === a) curAudio = null;
+      if (curBtn === btn) { setPlaying(btn, false); curBtn = null; }
+      if (!audioWarned) { audioWarned = true; toast('음원을 불러오지 못해 기기 음성으로 재생합니다'); }
+      if (fallback) fallback();
+    };
+    a.onerror = fail;
+    a.onended = function () {
+      if (done) return; done = true;
+      if (curAudio === a) curAudio = null;
+      if (curBtn === btn) { setPlaying(btn, false); curBtn = null; }
+    };
+    curAudio = a; curBtn = btn;
+    setPlaying(btn, true);
+    var p = null;
+    try { p = a.play(); } catch (e) { fail(); return; }
+    if (p && p.catch) p.catch(fail);
+  }
+  function playItem(btn, it) {
+    if (!it) return;
+    playMp3('audio/l' + it.id + '.mp3', btn, function () { speakLines(it.script); });
+  }
+  function playLine(btn, it, n) {
+    var line = it && it.script[n];
+    if (!line) return;
+    playMp3('audio/l' + it.id + '_' + n + '.mp3', btn, function () { speak(line.t, rolePitch(line)); });
+  }
+
   /* ---------- progress ---------- */
   var TOTAL = {
     v: VOCAB.length, g: GRAM.length, r: PASS.reduce(function (a, p) { return a + p.questions.length; }, 0),
@@ -478,7 +550,7 @@ nav.tabbar button.on{color:var(--accent)}
   ];
   var rendered = {};
   function go(id) {
-    stopSpeak();
+    stopSound();
     TABS.forEach(function (t) {
       $('tab-' + t[0]).classList.toggle('on', t[0] === id);
       $('nb-' + t[0]).classList.toggle('on', t[0] === id);
@@ -945,8 +1017,8 @@ nav.tabbar button.on{color:var(--accent)}
         + '<div class="tagline"><span>' + esc(it.type) + '</span><span>1회 재생 · 메모하며 듣기</span></div>'
         + '<h3 style="margin:0 0 4px">' + esc(it.title) + '</h3>'
         + '<div class="muted jp" style="font-size:13px">' + ruby(it.intro) + '</div>'
-        + '<div class="player"><button class="btn pri" data-play="' + it.id + '">▶ 대사 듣기</button>'
-        + '<button class="btn" data-stop="1">■ 정지</button></div>'
+        + '<div class="player"><button class="btn pri" data-play="' + it.id + '" aria-label="음성 듣기">▶ 듣기</button>'
+        + '<button class="btn" data-stop="1" aria-label="정지">■ 정지</button></div>'
         + '<div class="row" style="justify-content:space-between"><span class="speed">속도</span>'
         + '<button class="btn ghost small" data-trans="' + it.id + '">대본 보기</button></div>'
         + '<div class="script jp hide" id="scr-' + it.id + '">' + script + '</div>'
@@ -971,28 +1043,23 @@ nav.tabbar button.on{color:var(--accent)}
       + '<button class="btn small" data-rate="1.1">1.1x</button></span></div>'
       + '<div class="row" style="justify-content:space-between;margin-top:8px"><span class="small"><b>역할별 목소리</b> (남/여 높낮이 구분)</span>'
       + '<button class="btn small" id="lroles">' + (S.roles ? '켜짐' : '꺼짐') + '</button></div>'
-      + '<p class="muted small" style="margin:10px 0 0">아이폰에서 소리가 안 나면 : 측면 무음 모드를 해제하고, 설정 → 손쉬운 사용 → 읽기 및 말하기 → 음성 → 일본어에서 음성을 추가하세요. iOS는 한 번 누를 때 한 목소리로 읽어서 남·여 높낮이 구분은 데스크톱·안드로이드에서만 됩니다. 각 문항은 실제 시험처럼 한 번만 듣고 답해 보세요.</p></div>'
+      + '<p class="muted small" style="margin:10px 0 0">청해 음성은 실제 일본어 성우(남/여)로 미리 녹음한 MP3라서 아이폰 사파리에서도 재생됩니다. 소리가 안 나면 측면 무음 모드를 해제하고 기기 볼륨을 올려 주세요. 각 문항은 실제 시험처럼 한 번만 듣고 답해 보세요.</p></div>'
       + '<h2 style="margin-top:20px">미니 청해 연습</h2>' + items;
 
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-play]'), function (b) {
       b.addEventListener('click', function () {
-        var it = byId(LST.items, b.getAttribute('data-play'));
-        speakLines(it.script);
+        playItem(b, byId(LST.items, b.getAttribute('data-play')));
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-lsay]'), function (b) {
       b.addEventListener('click', function (e) {
         e.stopPropagation();
         var pr = String(b.getAttribute('data-lsay')).split(':');
-        var it2 = byId(LST.items, pr[0]);
-        if (it2 && it2.script[Number(pr[1])]) {
-          var line = it2.script[Number(pr[1])];
-          speak(line.t, rolePitch(line));
-        }
+        playLine(b, byId(LST.items, pr[0]), Number(pr[1]));
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-stop]'), function (b) {
-      b.addEventListener('click', function () { stopSpeak(); });
+      b.addEventListener('click', function () { stopSound(); });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-trans]'), function (b) {
       b.addEventListener('click', function () {
@@ -1007,7 +1074,11 @@ nav.tabbar button.on{color:var(--accent)}
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-rate]'), function (b) {
-      b.addEventListener('click', function () { S.rate = Number(b.getAttribute('data-rate')); save(); toast('속도 ' + S.rate + 'x'); });
+      b.addEventListener('click', function () {
+        S.rate = Number(b.getAttribute('data-rate'));
+        if (curAudio) { try { curAudio.playbackRate = S.rate; } catch (e) { } }
+        save(); toast('속도 ' + S.rate + 'x');
+      });
     });
     on($('lroles'), 'click', function () { S.roles = !S.roles; save(); renderListening(); });
   }
