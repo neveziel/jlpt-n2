@@ -703,7 +703,7 @@ nav.tabbar button.on{color:var(--accent)}
     return GRAM.filter(function (g) {
       if (gCat !== '전체' && g.c !== gCat) return false;
       if (!q) return true;
-      var hay = [g.t, g.m, g.conn, g.ex, g.exk, g.tip, g.c].join(' ').toLowerCase();
+      var hay = [g.t, g.m, g.conn, g.ex, g.exk, g.tip, g.c].map(plain).join(' ').toLowerCase();
       return hay.indexOf(q) >= 0;
     });
   }
