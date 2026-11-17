@@ -65,8 +65,10 @@ header{
 /* furigana */
 ruby{ruby-align:center;ruby-position:over}
 rt{font-size:.55em;line-height:1.05;font-weight:400;color:var(--sub);letter-spacing:0}
-body.furi .ex,body.furi .gbody .val,body.furi .qwrap,body.furi .opt,body.furi .qtitle,
-body.furi .script,body.furi .script .sp span,body.furi .ln b{line-height:2.05}
+body.furi .ex,body.furi .gbody .val,body.furi .qwrap,body.furi .qtitle,
+body.furi .ln b{line-height:2.05}
+body.furi .opt{line-height:1.75}
+body.furi .script .sp span{line-height:2.3}
 body.furi .ptext{line-height:2.25}
 body.furi .gt{line-height:2.0}
 body.nofuri rt{display:none}
@@ -204,7 +206,7 @@ ol.rules li{margin-bottom:8px;font-size:14px}
 .player{display:flex;gap:8px;margin:12px 0 6px}
 .player .btn{flex:1}
 .script{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;line-height:1.9;margin-top:10px}
-.script .sp{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
+.script .sp{display:flex;gap:8px;margin-bottom:9px;align-items:flex-start}
 .script .sp b{flex:0 0 26px;color:var(--accent);font-size:12px;padding-top:4px}
 .script .sp span{flex:1}
 .script .sp .spsay{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:1px 5px;font-size:11px;line-height:1.5;opacity:.75}
