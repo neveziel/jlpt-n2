@@ -825,6 +825,8 @@ nav.tabbar button.on{color:var(--accent)}
     });
   }
   function byId(arr, id) { for (var i = 0; i < arr.length; i++) if (String(arr[i].i) === String(id)) return arr[i]; return null; }
+  /* 청해 문항은 다른 섹션과 달리 키가 `id`다 */
+  function lById(id) { for (var i = 0; i < LST.items.length; i++) if (String(LST.items[i].id) === String(id)) return LST.items[i]; return null; }
 
   /* ---------- QUIZ ---------- */
   var QZ = { order: [], idx: 0, answered: false, correct: 0, wrong: [], done: false };
@@ -1048,14 +1050,14 @@ nav.tabbar button.on{color:var(--accent)}
 
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-play]'), function (b) {
       b.addEventListener('click', function () {
-        playItem(b, byId(LST.items, b.getAttribute('data-play')));
+        playItem(b, lById(b.getAttribute('data-play')));
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-lsay]'), function (b) {
       b.addEventListener('click', function (e) {
         e.stopPropagation();
         var pr = String(b.getAttribute('data-lsay')).split(':');
-        playLine(b, byId(LST.items, pr[0]), Number(pr[1]));
+        playLine(b, lById(pr[0]), Number(pr[1]));
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-stop]'), function (b) {
@@ -1134,6 +1136,7 @@ nav.tabbar button.on{color:var(--accent)}
     answerReading: answerReading, answerListening: answerListening,
     markVocab: markVocab, toggleGrammarDone: toggleGrammarDone,
     speak: speak, speakLines: speakLines, quiz: function () { return QZ; },
+    listeningItem: lById, playItem: playItem,
     plain: plain, ruby: ruby, ios: function () { return IOS; },
     setFuri: function (v) { S.furi = !!v; applyFuri(); }
   };
