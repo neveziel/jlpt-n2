@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6df6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JLPT N2">
+<meta name="description" content="2026-12-06 JLPT N2 대비 올인원 학습 웹앱 — 어휘·한자 플래시카드, 문법, 퀴즈, 독해, 청해">
+<title>JLPT N2 올인원 · D-Day 2026-12-06</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#111827; --sub:#5b6675; --line:#e4e8f0;
+  --accent:#2f6df6; --accent-soft:#e8efff; --teal:#0e9384; --teal-soft:#e2f5f1;
+  --ok:#12805c; --ok-soft:#e4f6ee; --bad:#d6336c; --bad-soft:#fdeaf1; --warn:#b45309;
+  --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0d1117; --card:#161c26; --ink:#e9eef6; --sub:#9aa7b8; --line:#26303d;
+    --accent:#6d9bff; --accent-soft:#1b2740; --teal:#4fd1c5; --teal-soft:#12302c;
+    --ok:#57d9a3; --ok-soft:#12302a; --bad:#ff8ab5; --bad-soft:#3a1a28; --warn:#f0b25a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Hiragino Sans","Noto Sans KR","Noto Sans JP",sans-serif;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+a{color:var(--accent)}
+.jp{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",-apple-system,sans-serif}
+
+/* header */
+header{
+  position:sticky; top:0; z-index:30;
+  padding:calc(8px + env(safe-area-inset-top)) 16px 10px;
+  background:var(--bg);
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(14px); backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.hrow{display:flex;align-items:center;gap:10px}
+.dday{display:flex;align-items:baseline;gap:6px;min-width:0}
+.dday b{font-size:26px;letter-spacing:-.5px;line-height:1.1}
+.dday span{font-size:12px;color:var(--sub)}
+.hprog{margin-left:auto;text-align:right;min-width:96px}
+.hprog .pct{font-size:15px;font-weight:700;color:var(--accent)}
+.hprog .lbl{font-size:11px;color:var(--sub)}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:99px;transition:width .35s ease}
+
+/* layout */
+main{padding:14px 16px 8px;max-width:720px;margin:0 auto}
+.tab{display:none;animation:fade .18s ease}
+.tab.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h2{font-size:20px;margin:4px 0 2px;letter-spacing:-.3px}
+h3{font-size:15px;margin:18px 0 8px;color:var(--ink)}
+.lead{color:var(--sub);font-size:13px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card.tight{padding:14px}
+.row{display:flex;gap:8px;align-items:center}
+.wrap{display:flex;flex-wrap:wrap;gap:8px}
+.muted{color:var(--sub);font-size:13px}
+.small{font-size:12px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.kv{display:flex;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:0}
+.kv b{flex:0 0 92px;color:var(--sub);font-weight:600;font-size:13px}
+
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--sub);
+  border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);
+  background:var(--card);border-radius:12px;padding:11px 14px;font-size:14px;font-weight:650}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.btn.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.btn.ghost{background:transparent}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.45}
+
+/* home */
+.hero{background:linear-gradient(135deg,var(--accent),var(--teal));color:#fff;border:0}
+.hero .big{font-size:44px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.hero .sub{opacity:.9;font-size:13px;margin-top:6px}
+.hero .mini{display:flex;gap:14px;margin-top:14px;font-size:12px;opacity:.95}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pbox{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card)}
+.pbox .n{font-size:20px;font-weight:750}
+.pbox .t{font-size:12px;color:var(--sub);margin-bottom:6px}
+.plan{list-style:none;padding:0;margin:0}
+.plan li{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.plan li:last-child{border-bottom:0}
+.plan .d{flex:0 0 62px;font-weight:750;color:var(--accent);font-size:13px}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick button{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 6px;font-size:12px;font-weight:650}
+.quick button b{display:block;font-size:20px;margin-bottom:4px}
+
+/* flashcard */
+.fcstage{perspective:1200px;margin-bottom:12px}
+.fcard{position:relative;width:100%;min-height:360px;transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  transform-style:preserve-3d;-webkit-transform-style:preserve-3d;touch-action:pan-y}
+.fcard.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
+  padding:20px;display:flex;flex-direction:column;overflow-y:auto}
+.face.back{transform:rotateY(180deg)}
+.face .tag{align-self:flex-start;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);
+  border-radius:99px;padding:3px 9px}
+.word{font-size:40px;font-weight:750;letter-spacing:1px;margin:18px 0 4px;line-height:1.2;word-break:keep-all}
+.read{font-size:17px;color:var(--teal);font-weight:650}
+.mean{font-size:18px;font-weight:650;margin-top:auto}
+.hint{font-size:12px;color:var(--sub);text-align:center;margin-top:12px}
+.ex{margin-top:10px;font-size:17px;line-height:1.7}
+.exk{font-size:13px;color:var(--sub);margin-top:6px}
+.fnav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fnav3{display:grid;grid-template-columns:auto 1fr auto;gap:8px}
+.speak{border:1px solid var(--line);background:var(--card);border-radius:12px;width:44px;height:44px;font-size:18px}
+.fcount{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub);margin-bottom:8px}
+
+/* grammar */
+.gcard{padding:0;overflow:hidden}
+.ghead{display:flex;align-items:flex-start;gap:10px;padding:14px 16px}
+.ghead>div:first-child{min-width:0;flex:1}
+.ghead .gt{font-size:18px;font-weight:750;line-height:1.3;overflow-wrap:anywhere}
+.ghead .gm{font-size:13px;color:var(--sub);margin-top:2px}
+.ghead .gbtn{margin-left:auto;display:flex;gap:6px;flex:0 0 auto}
+.gbody{padding:0 16px 16px;font-size:14px}
+.gbody .lab{font-size:11px;font-weight:800;color:var(--teal);letter-spacing:.4px;margin:10px 0 2px}
+.gbody .val{font-size:14px}
+.gbody .tip{background:var(--teal-soft);border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px}
+.gbody .ex{font-size:16px;margin-top:2px}
+.srch{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:16px;-webkit-appearance:none}
+.done{background:var(--ok-soft)!important;border-color:transparent!important}
+.likedot{color:var(--ok);font-weight:800}
+
+/* quiz */
+.qwrap{font-size:17px;line-height:1.9;margin:6px 0 14px}
+.qblank{color:var(--accent);font-weight:800}
+.opt{display:flex;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);
+  border-radius:13px;padding:13px 14px;margin-bottom:8px;font-size:16px;line-height:1.45}
+.opt .no{flex:0 0 22px;height:22px;border-radius:7px;background:var(--bg);border:1px solid var(--line);
+  font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt:disabled{opacity:1}
+.verdict{font-size:15px;font-weight:750;margin:10px 0 6px}
+.verdict.ok{color:var(--ok)} .verdict.ng{color:var(--bad)}
+.exp{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px;line-height:1.65}
+.qmeta{display:flex;justify-content:space-between;font-size:13px;color:var(--sub);margin-bottom:6px}
+.bigscore{font-size:34px;font-weight:800;letter-spacing:-1px}
+
+/* reading */
+.ptext{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px;
+  line-height:1.95;white-space:pre-wrap;letter-spacing:.1px}
+.qbox{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.qtitle{font-size:14px;font-weight:700;margin-bottom:8px}
+.tagline{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.tagline span{font-size:11px;font-weight:700;color:var(--sub);background:var(--bg);border:1px solid var(--line);
+  border-radius:99px;padding:2px 8px}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+table.t th{color:var(--sub);font-size:12px;font-weight:700;white-space:nowrap}
+table.t td:first-child{font-weight:700;white-space:nowrap}
+ol.rules{padding-left:20px;margin:6px 0 0}
+ol.rules li{margin-bottom:8px;font-size:14px}
+.ln{display:flex;gap:8px;font-size:14px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.ln:last-child{border-bottom:0}
+.ln b{flex:0 0 108px;color:var(--ink);font-weight:700}
+.ln span{color:var(--sub)}
+
+/* listening */
+.player{display:flex;gap:8px;margin:12px 0 6px}
+.player .btn{flex:1}
+.script{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;line-height:1.9;margin-top:10px}
+.script .sp{display:flex;gap:8px;margin-bottom:6px}
+.script .sp b{flex:0 0 26px;color:var(--accent);font-size:12px;padding-top:4px}
+.script .sp span{flex:1}
+.script .sp em{font-style:normal;background:var(--teal-soft);border-radius:4px;padding:0 3px}
+.hide{display:none!important}
+.speed{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub)}
+
+/* tips */
+.src{border-left:4px solid var(--accent)}
+.src.naver{border-left-color:#03c75a} .src.yt{border-left-color:#ff0033} .src.x{border-left-color:#111}
+@media (prefers-color-scheme: dark){.src.x{border-left-color:#9aa7b8}}
+.tipitem{padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.tipitem:last-child{border-bottom:0}
+.tipitem b{display:block;font-size:14px;margin-bottom:2px}
+.tipitem .meta{font-size:11px;color:var(--sub);margin-top:4px}
+.links{display:flex;flex-direction:column;gap:8px}
+.links a{display:block;border:1px solid var(--line);border-radius:12px;padding:11px 13px;text-decoration:none;background:var(--card)}
+.links a b{display:block;font-size:14px;color:var(--ink)}
+.links a span{font-size:12px;color:var(--sub)}
+.note{font-size:12px;color:var(--warn);background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+
+/* tabbar */
+nav.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  background:var(--card);
+  background:color-mix(in srgb, var(--card) 92%, transparent);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+nav.tabbar button{flex:1 1 0;min-width:0;border:0;background:transparent;padding:6px 0 4px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--sub);font-size:10px;font-weight:650}
+nav.tabbar button i{font-style:normal;font-size:19px;line-height:1}
+nav.tabbar button.on{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,10px);
+  background:rgba(20,26,36,.94);color:#fff;font-size:13px;padding:9px 14px;border-radius:99px;z-index:60;
+  opacity:0;pointer-events:none;transition:.25s;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (max-width:374px){
+  .word{font-size:34px}
+  .hero .mini{flex-wrap:wrap;gap:8px}
+  nav.tabbar button{font-size:9px}
+  nav.tabbar button i{font-size:17px}
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="dday"><b id="dnum">D-18</b><span id="dsub">N2 시험까지</span></div>
+    <div class="hprog"><div class="pct" id="hpct">0%</div><div class="lbl">전체 진도</div></div>
+  </div>
+  <div class="bar"><i id="hbar"></i></div>
+</header>
+<main>
+  <section id="tab-home" class="tab on"></section>
+  <section id="tab-vocab" class="tab"></section>
+  <section id="tab-grammar" class="tab"></section>
+  <section id="tab-quiz" class="tab"></section>
+  <section id="tab-reading" class="tab"></section>
+  <section id="tab-listening" class="tab"></section>
+  <section id="tab-tips" class="tab"></section>
+</main>
+<nav class="tabbar" id="tabbar"></nav>
+<div class="toast" id="toast"></div>
+<script>window.__DATA__ = {"vocab":{"vocab":[{"i":1,"w":"傾向","k":"けいこう","m":"경향","c":"명사","ex":"最近、若者の間でこの傾向が強くなっている。","exk":"요즘 젊은이들 사이에서 이 경향이 강해지고 있다."},{"i":2,"w":"要因","k":"よういん","m":"요인","c":"명사","ex":"事故の主な要因はスピードの出しすぎだった。","exk":"사고의 주된 요인은 과속이었다."},{"i":3,"w":"実態","k":"じったい","m":"실태","c":"명사","ex":"調査で労働時間の実態が明らかになった。","exk":"조사로 노동시간의 실태가 밝혀졌다."},{"i":4,"w":"見解","k":"けんかい","m":"견해","c":"명사","ex":"専門家によって見解が分かれている。","exk":"전문가에 따라 견해가 갈린다."},{"i":5,"w":"根拠","k":"こんきょ","m":"근거","c":"명사","ex":"その結論には十分な根拠がある。","exk":"그 결론에는 충분한 근거가 있다."},{"i":6,"w":"対象","k":"たいしょう","m":"대상 (주의: 対照는 대조)","c":"명사","ex":"この講座は初心者を対象としている。","exk":"이 강좌는 초보자를 대상으로 한다."},{"i":7,"w":"範囲","k":"はんい","m":"범위","c":"명사","ex":"試験の範囲は教科書の半分までだ。","exk":"시험 범위는 교과서의 절반까지다."},{"i":8,"w":"状況","k":"じょうきょう","m":"상황","c":"명사","ex":"現地の状況を確認してから決めよう。","exk":"현지 상황을 확인한 뒤 정하자."},{"i":9,"w":"条件","k":"じょうけん","m":"조건","c":"명사","ex":"この条件では契約できない。","exk":"이 조건으로는 계약할 수 없다."},{"i":10,"w":"背景","k":"はいけい","m":"배경","c":"명사","ex":"この問題には複雑な背景がある。","exk":"이 문제에는 복잡한 배경이 있다."},{"i":11,"w":"特徴","k":"とくちょう","m":"특징","c":"명사","ex":"この製品の特徴は軽さにある。","exk":"이 제품의 특징은 가벼움에 있다."},{"i":12,"w":"要素","k":"ようそ","m":"요소","c":"명사","ex":"成功には運も大きな要素だ。","exk":"성공에는 운도 큰 요소다."},{"i":13,"w":"政策","k":"せいさく","m":"정책","c":"명사","ex":"政府は新しい政策を発表した。","exk":"정부는 새 정책을 발표했다."},{"i":14,"w":"制度","k":"せいど","m":"제도","c":"명사","ex":"来年から新しい制度が始まる。","exk":"내년부터 새 제도가 시작된다."},{"i":15,"w":"現象","k":"げんしょう","m":"현상","c":"명사","ex":"この現象はまだ解明されていない。","exk":"이 현상은 아직 해명되지 않았다."},{"i":16,"w":"規制","k":"きせい","m":"규제","c":"명사","ex":"規制が強化されて手続きが増えた。","exk":"규제가 강화되어 절차가 늘었다."},{"i":17,"w":"対策","k":"たいさく","m":"대책","c":"명사","ex":"早めに対策を取る必要がある。","exk":"서둘러 대책을 세울 필요가 있다."},{"i":18,"w":"格差","k":"かくさ","m":"격차","c":"명사","ex":"都市と地方の格差が広がっている。","exk":"도시와 지방의 격차가 벌어지고 있다."},{"i":19,"w":"少子化","k":"しょうしか","m":"저출산","c":"명사","ex":"少子化が進み、学校の数が減った。","exk":"저출산이 진행되어 학교 수가 줄었다."},{"i":20,"w":"需要","k":"じゅよう","m":"수요","c":"명사","ex":"夏は冷房の需要が高まる。","exk":"여름에는 냉방 수요가 높아진다."},{"i":21,"w":"供給","k":"きょうきゅう","m":"공급","c":"명사","ex":"供給が追いつかず、品切れが続く。","exk":"공급이 따라가지 못해 품절이 이어진다."},{"i":22,"w":"就職","k":"しゅうしょく","m":"취직","c":"명사","ex":"大学を卒業して都内の会社に就職した。","exk":"대학을 졸업하고 도쿄 안의 회사에 취직했다."},{"i":23,"w":"転職","k":"てんしょく","m":"이직","c":"명사","ex":"来月転職することになった。","exk":"다음 달 이직하게 되었다."},{"i":24,"w":"契約","k":"けいやく","m":"계약","c":"명사","ex":"契約の更新は三年ごとだ。","exk":"계약 갱신은 3년마다다."},{"i":25,"w":"業績","k":"ぎょうせき","m":"실적","c":"명사","ex":"今年の業績は過去最高だった。","exk":"올해 실적은 사상 최고였다."},{"i":26,"w":"方針","k":"ほうしん","m":"방침","c":"명사","ex":"会社の方針が変わって計画が中止になった。","exk":"회사 방침이 바뀌어 계획이 중지되었다."},{"i":27,"w":"提携","k":"ていけい","m":"제휴","c":"명사","ex":"この会社は海外企業と提携している。","exk":"이 회사는 해외 기업과 제휴하고 있다."},{"i":28,"w":"人事","k":"じんじ","m":"인사","c":"명사","ex":"春に人事の異動が発表される。","exk":"봄에 인사 이동이 발표된다."},{"i":29,"w":"経営","k":"けいえい","m":"경영","c":"명사","ex":"父は小さな工場を経営している。","exk":"아버지는 작은 공장을 경영하고 있다."},{"i":30,"w":"取引","k":"とりひき","m":"거래","c":"명사","ex":"取引先との関係を大切にしている。","exk":"거래처와의 관계를 소중히 여기고 있다."},{"i":31,"w":"交渉","k":"こうしょう","m":"교섭, 협상","c":"명사","ex":"価格について交渉を続けている。","exk":"가격에 대해 협상을 계속하고 있다."},{"i":32,"w":"昇進","k":"しょうしん","m":"승진","c":"명사","ex":"彼は部長に昇進した。","exk":"그는 부장으로 승진했다."},{"i":33,"w":"業務","k":"ぎょうむ","m":"업무","c":"명사","ex":"業務の効率化が課題だ。","exk":"업무 효율화가 과제다."},{"i":34,"w":"貿易","k":"ぼうえき","m":"무역","c":"명사","ex":"両国の貿易額は年々増えている。","exk":"양국의 무역액은 해마다 늘고 있다."},{"i":35,"w":"援助","k":"えんじょ","m":"원조, 지원","c":"명사","ex":"被災地に援助の物資を送った。","exk":"피해 지역에 지원 물자를 보냈다."},{"i":36,"w":"会見","k":"かいけん","m":"회견","c":"명사","ex":"監督は試合のあと会見を行った。","exk":"감독은 경기 후 회견을 했다."},{"i":37,"w":"支持","k":"しじ","m":"지지","c":"명사","ex":"その意見に多くの人が支持を示した。","exk":"그 의견에 많은 사람이 지지를 보였다."},{"i":38,"w":"言い訳","k":"いいわけ","m":"변명","c":"명사","ex":"遅刻の言い訳ばかりしないでほしい。","exk":"지각 변명만 늘어놓지 않았으면 한다."},{"i":39,"w":"基準","k":"きじゅん","m":"기준","c":"명사","ex":"合格の基準が引き上げられた。","exk":"합격 기준이 올라갔다."},{"i":40,"w":"影響","k":"えいきょう","m":"영향","c":"명사","ex":"台風の影響で電車が止まった。","exk":"태풍의 영향으로 전철이 멈췄다."},{"i":41,"w":"訂正","k":"ていせい","m":"정정","c":"명사","ex":"誤りがあったので訂正します。","exk":"오류가 있어 정정하겠습니다."},{"i":42,"w":"期限切れ","k":"きげんぎれ","m":"기한 만료","c":"한자·단어형성","ex":"期限切れの切符は使えない。","exk":"기한이 지난 표는 쓸 수 없다."},{"i":43,"w":"高性能","k":"こうせいのう","m":"고성능","c":"한자·단어형성","ex":"高性能なカメラを買った。","exk":"고성능 카메라를 샀다."},{"i":44,"w":"未経験","k":"みけいけん","m":"미경험","c":"한자·단어형성","ex":"未経験でも応募できる。","exk":"미경험이어도 지원할 수 있다."},{"i":45,"w":"一日おき","k":"いちにちおき","m":"하루 걸러 (이틀에 한 번)","c":"한자·단어형성","ex":"この薬は一日おきに飲む。","exk":"이 약은 하루 걸러 먹는다."},{"i":46,"w":"危険性","k":"きけんせい","m":"위험성","c":"한자·단어형성","ex":"この方法には危険性が伴う。","exk":"이 방법에는 위험성이 따른다."},{"i":47,"w":"模範","k":"もはん","m":"모범","c":"한자·단어형성","ex":"彼の答案は模範とされた。","exk":"그의 답안은 모범으로 여겨졌다."},{"i":48,"w":"軽傷","k":"けいしょう","m":"경상","c":"한자·단어형성","ex":"転んで足に軽傷を負った。","exk":"넘어져 다리에 경상을 입었다."},{"i":49,"w":"継続","k":"けいぞく","m":"계속","c":"한자·단어형성","ex":"契約を継続するかどうか検討中だ。","exk":"계약을 계속할지 검토 중이다."},{"i":50,"w":"極端","k":"きょくたん","m":"극단","c":"한자·단어형성","ex":"極端な例ばかり挙げるのはよくない。","exk":"극단적인 예만 드는 것은 좋지 않다."},{"i":51,"w":"扱う","k":"あつかう","m":"다루다, 취급하다","c":"동사","ex":"この店は輸入品を扱っている。","exk":"이 가게는 수입품을 취급한다."},{"i":52,"w":"戻す","k":"もどす","m":"되돌리다","c":"동사","ex":"読んだ本は棚に戻してください。","exk":"읽은 책은 선반에 되돌려 주세요."},{"i":53,"w":"除く","k":"のぞく","m":"제외하다","c":"동사","ex":"日曜日を除いて毎日開いている。","exk":"일요일을 제외하고 매일 문을 연다."},{"i":54,"w":"拾う","k":"ひろう","m":"줍다","c":"동사","ex":"道で財布を拾って交番に届けた。","exk":"길에서 지갑을 주워 파출소에 맡겼다."},{"i":55,"w":"破れる","k":"やぶれる","m":"찢어지다, 깨지다","c":"동사","ex":"袋が破れて中身が落ちてしまった。","exk":"봉지가 찢어져 내용물이 떨어졌다."},{"i":56,"w":"蓄える","k":"たくわえる","m":"모으다, 비축하다","c":"동사","ex":"老後のために少しずつ蓄えている。","exk":"노후를 위해 조금씩 모으고 있다."},{"i":57,"w":"目指す","k":"めざす","m":"목표로 하다","c":"동사","ex":"彼は医者を目指して勉強している。","exk":"그는 의사를 목표로 공부하고 있다."},{"i":58,"w":"通う","k":"かよう","m":"다니다","c":"동사","ex":"週に二回、教室に通っている。","exk":"주 2회 교실에 다니고 있다."},{"i":59,"w":"断る","k":"ことわる","m":"거절하다","c":"동사","ex":"忙しいので誘いを断った。","exk":"바빠서 초대를 거절했다."},{"i":60,"w":"逃す","k":"のがす","m":"놓치다","c":"동사","ex":"チャンスを逃して悔しい。","exk":"기회를 놓쳐 억울하다."},{"i":61,"w":"追い込む","k":"おいこむ","m":"몰아넣다, 몰아붙이다","c":"동사","ex":"追い込みすぎて体調を崩した。","exk":"너무 몰아붙여 몸이 상했다."},{"i":62,"w":"見出す","k":"みいだす","m":"찾아내다","c":"동사","ex":"問題の中に新しい意味を見出した。","exk":"문제 속에서 새로운 의미를 찾아냈다."},{"i":63,"w":"思い込む","k":"おもいこむ","m":"(혼자) 굳게 믿다, 착각하다","c":"동사","ex":"彼は自分が正しいと思い込んでいる。","exk":"그는 자기가 옳다고 굳게 믿고 있다."},{"i":64,"w":"立ち止まる","k":"たちどまる","m":"멈춰 서다","c":"동사","ex":"立ち止まって空を見上げた。","exk":"멈춰 서서 하늘을 올려다봤다."},{"i":65,"w":"抜き出す","k":"ぬきだす","m":"뽑아내다, 추출하다","c":"동사","ex":"必要なデータを抜き出して表にした。","exk":"필요한 데이터를 뽑아내 표로 만들었다."},{"i":66,"w":"話し合う","k":"はなしあう","m":"서로 이야기하다, 논의하다","c":"동사","ex":"家族で旅行の計画を話し合った。","exk":"가족끼리 여행 계획을 논의했다."},{"i":67,"w":"疲れ切る","k":"つかれきる","m":"완전히 지치다","c":"동사","ex":"一日中歩いて疲れ切った。","exk":"하루 종일 걸어 완전히 지쳤다."},{"i":68,"w":"諦める","k":"あきらめる","m":"포기하다","c":"동사","ex":"最後まで諦めないでほしい。","exk":"마지막까지 포기하지 않았으면 한다."},{"i":69,"w":"重なる","k":"かさなる","m":"겹치다","c":"동사","ex":"今年は祝日と日曜日が重なった。","exk":"올해는 공휴일과 일요일이 겹쳤다."},{"i":70,"w":"果たす","k":"はたす","m":"다하다, 이루다","c":"동사","ex":"約束を果たすために努力した。","exk":"약속을 지키기 위해 노력했다."},{"i":71,"w":"支える","k":"ささえる","m":"지탱하다, 뒷받침하다","c":"동사","ex":"家族が彼の挑戦を支えている。","exk":"가족이 그의 도전을 뒷받침하고 있다."},{"i":72,"w":"頼る","k":"たよる","m":"의지하다","c":"동사","ex":"知らない土地では人に頼るしかない。","exk":"모르는 땅에서는 사람에게 의지할 수밖에 없다."},{"i":73,"w":"認める","k":"みとめる","m":"인정하다","c":"동사","ex":"自分の間違いを認めた。","exk":"자기 잘못을 인정했다."},{"i":74,"w":"加わる","k":"くわわる","m":"더해지다, 참가하다","c":"동사","ex":"グループに新しいメンバーが加わった。","exk":"그룹에 새 멤버가 더해졌다."},{"i":75,"w":"防ぐ","k":"ふせぐ","m":"막다, 예방하다","c":"동사","ex":"手洗いで病気を防ぐ。","exk":"손 씻기로 병을 예방한다."},{"i":76,"w":"いわゆる","k":"いわゆる","m":"이른바, 소위","c":"부사","ex":"いわゆる「ブラック企業」と呼ばれている。","exk":"이른바 '블랙 기업'이라 불린다."},{"i":77,"w":"かえって","k":"かえって","m":"오히려 (예상과 반대 결과)","c":"부사","ex":"薬を飲んだら、かえって具合が悪くなった。","exk":"약을 먹었더니 오히려 상태가 나빠졌다."},{"i":78,"w":"むしろ","k":"むしろ","m":"오히려, 차라리 (비교해서 선택)","c":"부사","ex":"バスより、むしろ歩いたほうが早い。","exk":"버스보다 차라리 걷는 편이 빠르다."},{"i":79,"w":"あらかじめ","k":"あらかじめ","m":"미리","c":"부사","ex":"あらかじめ連絡しておいてください。","exk":"미리 연락해 두세요."},{"i":80,"w":"なにしろ","k":"なにしろ","m":"어쨌든, 아무튼","c":"부사","ex":"なにしろ時間がないので急ごう。","exk":"아무튼 시간이 없으니 서두르자."},{"i":81,"w":"さっそく","k":"さっそく","m":"곧바로, 즉시","c":"부사","ex":"届いた商品をさっそく使ってみた。","exk":"도착한 상품을 곧바로 써 봤다."},{"i":82,"w":"ろくに","k":"ろくに","m":"제대로 (~않다)","c":"부사","ex":"忙しくてろくに休みも取れない。","exk":"바빠서 제대로 쉬지도 못한다."},{"i":83,"w":"てっきり","k":"てっきり","m":"틀림없이 (~라고 착각)","c":"부사","ex":"てっきり雨だと思っていたら、晴れた。","exk":"틀림없이 비인 줄 알았는데 갰다."},{"i":84,"w":"せめて","k":"せめて","m":"적어도, 최소한","c":"부사","ex":"せめて一言連絡してほしかった。","exk":"적어도 한마디 연락해 주었으면 했다."},{"i":85,"w":"ようやく","k":"ようやく","m":"겨우, 드디어","c":"부사","ex":"三時間待ってようやく順番が来た。","exk":"세 시간 기다려 겨우 순서가 왔다."},{"i":86,"w":"いっそ","k":"いっそ","m":"차라리","c":"부사","ex":"途中でやめるくらいなら、いっそ最後まで続けたい。","exk":"중간에 그만두느니 차라리 끝까지 하고 싶다."},{"i":87,"w":"どうしても","k":"どうしても","m":"아무리 해도, 꼭","c":"부사","ex":"どうしてもその日は都合がつかない。","exk":"아무리 해도 그날은 시간이 안 된다."},{"i":88,"w":"一気に","k":"いっきに","m":"단숨에","c":"부사","ex":"残りの作業を一気に終わらせた。","exk":"남은 작업을 단숨에 끝냈다."},{"i":89,"w":"思いきって","k":"おもいきって","m":"과감하게, 큰맘 먹고","c":"부사","ex":"思いきって新しいパソコンを買った。","exk":"큰맘 먹고 새 컴퓨터를 샀다."},{"i":90,"w":"たまたま","k":"たまたま","m":"우연히","c":"부사","ex":"たまたま駅で昔の友達に会った。","exk":"우연히 역에서 옛 친구를 만났다."},{"i":91,"w":"うとうと","k":"うとうと","m":"꾸벅꾸벅 (졸다)","c":"부사","ex":"授業中にうとうとしてしまった。","exk":"수업 중에 꾸벅꾸벅 졸았다."},{"i":92,"w":"明らかだ","k":"あきらかだ","m":"명백하다","c":"형용사","ex":"事故の原因は明らかだ。","exk":"사고의 원인은 명백하다."},{"i":93,"w":"贅沢だ","k":"ぜいたくだ","m":"사치스럽다","c":"형용사","ex":"毎日外食は贅沢すぎる。","exk":"매일 외식은 너무 사치다."},{"i":94,"w":"地味だ","k":"じみだ","m":"수수하다","c":"형용사","ex":"地味な色の服が好きだ。","exk":"수수한 색 옷을 좋아한다."},{"i":95,"w":"余計だ","k":"よけいだ","m":"쓸데없다, 여분이다","c":"형용사","ex":"余計なことを言ってしまった。","exk":"쓸데없는 말을 하고 말았다."},{"i":96,"w":"みっともない","k":"みっともない","m":"꼴사납다","c":"형용사","ex":"人前で大声を出すのはみっともない。","exk":"남들 앞에서 큰소리 치는 것은 꼴사납다."},{"i":97,"w":"ずるい","k":"ずるい","m":"교활하다, 얌체 같다","c":"형용사","ex":"自分だけ得をするのはずるい。","exk":"혼자만 이득 보는 것은 얌체 같다."},{"i":98,"w":"望ましい","k":"のぞましい","m":"바람직하다","c":"형용사","ex":"早めに申し込むのが望ましい。","exk":"일찍 신청하는 것이 바람직하다."},{"i":99,"w":"ふさわしい","k":"ふさわしい","m":"어울리다, 적합하다","c":"형용사","ex":"この場にふさわしい服装を選んだ。","exk":"이 자리에 어울리는 복장을 골랐다."},{"i":100,"w":"大幅な","k":"おおはばな","m":"대폭적인","c":"형용사","ex":"大幅な値引きがあった。","exk":"대폭적인 할인이 있었다."},{"i":101,"w":"わずかな","k":"わずかな","m":"근소한, 약간의","c":"형용사","ex":"わずかな差で勝負が決まった。","exk":"근소한 차이로 승부가 갈렸다."},{"i":102,"w":"独特だ","k":"どくとくだ","m":"독특하다","c":"형용사","ex":"この町には独特な文化がある。","exk":"이 마을에는 독특한 문화가 있다."},{"i":103,"w":"幼稚だ","k":"ようちだ","m":"유치하다","c":"형용사","ex":"そんな言い方は幼稚だ。","exk":"그런 말투는 유치하다."},{"i":104,"w":"面倒だ","k":"めんどうだ","m":"귀찮다, 번거롭다","c":"형용사","ex":"手続きが面倒で先延ばしにした。","exk":"절차가 번거로워 미뤘다."},{"i":105,"w":"手軽だ","k":"てがるだ","m":"손쉽다, 간편하다","c":"형용사","ex":"手軽に作れる料理を教えてほしい。","exk":"간편하게 만들 수 있는 요리를 알려줬으면 한다."},{"i":106,"w":"騒々しい","k":"そうぞうしい","m":"소란스럽다","c":"형용사","ex":"工事の音が騒々しくて眠れない。","exk":"공사 소리가 소란스러워 잠을 못 자겠다."},{"i":107,"w":"粗い","k":"あらい","m":"거칠다, 조잡하다","c":"형용사","ex":"この紙は表面が粗い。","exk":"이 종이는 표면이 거칠다."},{"i":108,"w":"勢い","k":"いきおい","m":"기세","c":"한자·단어형성","ex":"勢いよくドアが開いた。","exk":"기세 좋게 문이 열렸다."}]},"grammar":{"grammar":[{"i":1,"t":"〜ばかりに","c":"원인·이유","conn":"Vた / イAい / ナAな / 名詞(である) + ばかりに","m":"~한 탓에 (나쁜 결과)","tip":"하나의 원인 때문에 나쁜 결과가 생겼다는 후회·원망. 뒤에는 반드시 부정적 결과. 긍정 결과에는 쓰지 않고, 「〜おかげで」와 정반대.","ex":"正直に言ったばかりに、皆に嫌われた。","exk":"솔직히 말한 탓에 모두에게 미움받았다."},{"i":2,"t":"〜あまり(に)","c":"원인·이유","conn":"名詞+の / Vる·Vた / ナAな + あまり(に)","m":"너무 ~한 나머지","tip":"감정·상태가 지나쳐서 자제할 수 없는 결과가 나옴. 「驚きのあまり」「緊張のあまり」처럼 감정 명사와 잘 붙음. 앞에는 정도를 넘은 상태가 와야 함.","ex":"緊張のあまり、何も言えなかった。","exk":"긴장한 나머지 아무 말도 못 했다."},{"i":3,"t":"〜ことから","c":"원인·이유","conn":"보통형 / 名詞+である + ことから","m":"~인 것에서 (근거·유래)","tip":"이름의 유래, 판단의 근거를 말할 때. 「〜ことだから」는 '그 사람 성격상 틀림없이'라는 전혀 다른 문형이니 구별.","ex":"顔が似ていることから、兄弟だと分かった。","exk":"얼굴이 닮은 것에서 형제임을 알았다."},{"i":4,"t":"〜だけに","c":"원인·이유","conn":"보통형 / 名詞 + だけに","m":"~인 만큼 (더욱)","tip":"기대나 지위에 걸맞게 결과가 두드러짐. 감탄·안타까움 모두 가능. 「〜だけあって」는 칭찬(긍정 평가)에 한정되는 점이 다름.","ex":"有名な店だけに、味も価格も納得だ。","exk":"유명한 가게인 만큼 맛도 가격도 납득이 간다."},{"i":5,"t":"〜ものだから","c":"원인·이유","conn":"보통형 + ものだから","m":"~한 것이라서 (변명·핑계)","tip":"구어적. 자기의 사정을 변명하듯 설명. 「〜ので」보다 변명의 뉘앙스가 강함.","ex":"電車が遅れたものだから、遅刻してしまった。","exk":"전철이 늦은 것이라 지각하고 말았다."},{"i":6,"t":"〜おかげで","c":"원인·이유","conn":"名詞+の / 보통형 + おかげで","m":"~덕분에","tip":"좋은 결과의 원인. 비꼬는 용법(「〜のおかげで大変なことに」)도 있음. 「〜せいで」는 나쁜 결과 전용.","ex":"先生のおかげで合格できた。","exk":"선생님 덕분에 합격할 수 있었다."},{"i":7,"t":"〜せいで","c":"원인·이유","conn":"名詞+の / 보통형 + せいで","m":"~때문에 (나쁜 결과)","tip":"책임을 돌리는 뉘앙스. 「〜せいか」는 '때문인지'로 추측. 「〜おかげで」와 긍정·부정이 갈림.","ex":"寝坊したせいで、電車に乗り遅れた。","exk":"늦잠 잔 탓에 전철을 놓쳤다."},{"i":8,"t":"〜からこそ","c":"원인·이유","conn":"보통형 + からこそ","m":"바로 ~이기 때문에 (강조)","tip":"이유를 하나로 못 박아 강조. 「〜からこそ〜のだ」 형태로 결론을 강조하는 일이 많음. 단순 「から」보다 한정적.","ex":"苦労したからこそ、今の自分がある。","exk":"고생했기 때문에 지금의 내가 있다."},{"i":9,"t":"〜にもかかわらず","c":"역접·양보","conn":"보통형 / 名詞(である) + にもかかわらず","m":"~에도 불구하고","tip":"격식·문어. 예상 밖의 결과를 강하게 강조. 회화의 「〜のに」에 해당하지만 딱딱한 표현.","ex":"大雨にもかかわらず、試合は行われた。","exk":"폭우에도 불구하고 경기는 열렸다."},{"i":10,"t":"〜わりに(は)","c":"역접·양보","conn":"보통형 / 名詞+の + わりに(は)","m":"~에 비해서는","tip":"기대치와 실제의 불균형. 형용사도 직접 붙음. 「〜にしては」와 비슷하지만 「わりに」가 더 폭넓게 쓰임.","ex":"値段が高いわりに、味はいまいちだ。","exk":"가격이 비싼 것에 비해 맛은 별로다."},{"i":11,"t":"〜くせに","c":"역접·양보","conn":"보통형 / 名詞+の / ナAな + くせに","m":"~인 주제에","tip":"비난·경멸의 감정이 강함. 사람에게만 쓰고, 자기 자신에게는 쓰지 않음. 「〜のに」보다 감정적.","ex":"知らないくせに、知ったふりをする。","exk":"모르는 주제에 아는 척한다."},{"i":12,"t":"〜ものの","c":"역접·양보","conn":"보통형 + ものの","m":"~이긴 하지만","tip":"격식. 앞의 사실을 인정하고 뒤에서 예상과 다른 사실을 말함. 「〜けれども」의 문어판.","ex":"約束したものの、結局行けなかった。","exk":"약속했지만 결국 갈 수 없었다."},{"i":13,"t":"〜とはいえ","c":"역접·양보","conn":"보통형 / 名詞 + とはいえ","m":"~라고는 해도","tip":"앞을 인정하면서 뒤에서 제한을 붙임. 「〜といっても」보다 문어적이고 단정적.","ex":"春とはいえ、まだ寒い日が続く。","exk":"봄이라고는 해도 아직 추운 날이 이어진다."},{"i":14,"t":"〜にしては","c":"역접·양보","conn":"보통형 / 名詞 + にしては","m":"~치고는","tip":"기준과 다른 점을 지적. 「わりに」와 달리 명사·동사에 바로 붙고, 형용사에는 잘 안 붙임.","ex":"初めてにしては、よくできている。","exk":"처음치고는 잘 되어 있다."},{"i":15,"t":"〜からといって","c":"역접·양보","conn":"보통형 + からといって","m":"~라고 해서 (그렇다고 ~은 아니다)","tip":"뒤에 「〜わけではない」「〜とは限らない」가 오는 것이 정형. 앞 이유만으로 단정할 수 없다는 뜻.","ex":"安いからといって、買うわけではない。","exk":"싸다고 해서 사는 것은 아니다."},{"i":16,"t":"〜ながらも","c":"역접·양보","conn":"Vます어간 / イAい / ナA(であり) / 名詞(であり) + ながらも","m":"~이면서도","tip":"격식. 「狭いながらも」처럼 의외성·역접. 「〜つつも」와 거의 같은 뜻.","ex":"狭いながらも、住みやすい部屋だ。","exk":"좁으면서도 살기 좋은 방이다."},{"i":17,"t":"〜としても","c":"역접·양보","conn":"보통형 + としても","m":"~라고 해도","tip":"가정적 양보. 뒤에는 반대 의견·다른 사실. 「〜にしても」와 유사.","ex":"雨が降ったとしても、出かけます。","exk":"비가 온다 해도 나갑니다."},{"i":18,"t":"〜にあたって","c":"시점·계기","conn":"名詞 / Vる + にあたって","m":"~에 즈음하여","tip":"격식. 의식을 가지고 임하는 자세를 말함. 「〜に際して」와 거의 같음.","ex":"開会にあたって、一言ご挨拶します。","exk":"개회에 즈음하여 한 말씀 드리겠습니다."},{"i":19,"t":"〜を契機に(して)","c":"시점·계기","conn":"名詞 / Vた+の + を契機に","m":"~을 계기로 (격식)","tip":"단단한 문어 표현. 「〜をきっかけに」보다 격식적이고 사회적 변화에 자주 씀.","ex":"病気を契機に、生活を見直した。","exk":"병을 계기로 생활을 돌아봤다."},{"i":20,"t":"〜をきっかけに(して)","c":"시점·계기","conn":"名詞 / Vた+の + をきっかけに","m":"~을 계기로","tip":"일상적인 계기. 「〜がきっかけで」 형태도 가능.","ex":"友人の紹介をきっかけに、日本語を習い始めた。","exk":"친구 소개를 계기로 일본어를 배우기 시작했다."},{"i":21,"t":"〜か〜ないかのうちに","c":"시점·계기","conn":"Vる/Vた + か + Vない + かのうちに","m":"~하자마자","tip":"같은 동사를 긍정·부정으로 반복. 극히 짧은 순간에 다음 일이 일어남. 「〜とたん」보다 빠른 느낌.","ex":"ドアを開けるか開けないかのうちに、雨が降り出した。","exk":"문을 열자마자 비가 내리기 시작했다."},{"i":22,"t":"〜次第 (ます어간+次第)","c":"시점·계기","conn":"Vます어간 + 次第","m":"~하는 대로 즉시","tip":"비즈니스 표현. 「到着し次第」「決まり次第」. 명사+次第だ(~나름이다), 次第に(차츰)와 모양이 같으니 구별.","ex":"到着し次第、ご連絡いたします。","exk":"도착하는 대로 연락드리겠습니다."},{"i":23,"t":"〜たとたん(に)","c":"시점·계기","conn":"Vた + とたん(に)","m":"~하자마자 (그 순간)","tip":"의외성·즉각성. 뒤에는 과거 사실이 옴. 내 의지적 행동에는 잘 안 씀.","ex":"立ち上がったとたん、めまいがした。","exk":"일어나자마자 어지러웠다."},{"i":24,"t":"〜うちに","c":"시점·계기","conn":"Vる/Vない / イAい / ナAな + うちに","m":"~하는 동안에 / ~하기 전에","tip":"상태가 변하기 전에라는 뜻. 「忘れないうちに」처럼 부정형과 자주 결합. 「〜間に」는 시간 범위, 「うちに」는 변화 전의 상태에 초점.","ex":"忘れないうちに、メモしておこう。","exk":"잊지 않았을 때 메모해 두자."},{"i":25,"t":"〜にすぎない","c":"정도·한도","conn":"名詞 / 보통형 + にすぎない","m":"~에 불과하다","tip":"정도를 낮춰 평가. 「〜だけだ」와 비슷하지만 「에 불과하다」는 무시하는 뉘앙스.","ex":"それはうわさにすぎない。","exk":"그것은 소문에 불과하다."},{"i":26,"t":"〜どころか","c":"정도·한도","conn":"名詞 / 보통형 + どころか","m":"~는커녕","tip":"앞을 부정하고 그보다 훨씬 극단적인 것을 제시. 「〜どころではない」는 '~할 상황이 아니다'.","ex":"貯金どころか、生活費も足りない。","exk":"저축은커녕 생활비도 부족하다."},{"i":27,"t":"〜はもとより","c":"정도·한도","conn":"名詞 + はもとより","m":"~은 물론이고","tip":"격식. 당연한 것에 더해 다른 것도. 「〜はもちろん」의 문어판.","ex":"日本語はもとより、英語も話せる。","exk":"일본어는 물론 영어도 할 수 있다."},{"i":28,"t":"〜ないことには","c":"정도·한도","conn":"Vない / イAくない / ナAでない + ことには","m":"~하지 않고서는","tip":"뒤에 반드시 부정(できない 등)이 옴. 전제 조건을 강조.","ex":"実際に見ないことには、判断できない。","exk":"직접 보지 않고서는 판단할 수 없다."},{"i":29,"t":"〜かのように","c":"정도·한도","conn":"보통형 + かのように","m":"마치 ~인 것처럼","tip":"사실과 다른 모습·태도를 비유. 「まるで」와 함께 자주 씀.","ex":"彼は何も知らないかのように振る舞った。","exk":"그는 아무것도 모르는 것처럼 행동했다."},{"i":30,"t":"〜さえ〜ば","c":"정도·한도","conn":"名詞+さえ / Vます어간+さえすれば","m":"~만 하면","tip":"최소 조건만 충족되면 충분하다는 뜻. 「お金さえあれば」처럼 명사에 붙는 형태가 빈출.","ex":"お金さえあれば、何でも買えるわけではない。","exk":"돈만 있으면 뭐든 살 수 있는 것은 아니다."},{"i":31,"t":"〜からいうと / 〜からすれば","c":"입장·시각","conn":"名詞 + からいうと / から言えば / からすれば","m":"~입장에서 말하면","tip":"판단의 기준·입장을 제시. 「〜から見ると」와 유사.","ex":"専門家の立場からいうと、この方法は危険だ。","exk":"전문가 입장에서 말하면 이 방법은 위험하다."},{"i":32,"t":"〜にしたら / 〜にすれば","c":"입장·시각","conn":"名詞(사람) + にしたら / にすれば","m":"~의 입장에서는","tip":"감정 이입. 「〜にとって」는 객관적 기준, 「〜にしたら」는 그 사람의 기분을 헤아리는 뉘앙스.","ex":"子供にしたら、それは大きな問題だ。","exk":"아이 입장에서는 그것은 큰 문제다."},{"i":33,"t":"〜上は / 〜以上は","c":"입장·시각","conn":"Vる/Vた + 上は / 以上は","m":"~한 이상은","tip":"결의·의무를 나타냄. 「〜からには」와 거의 같고 더 문어적.","ex":"やると決めた上は、最後までやる。","exk":"하기로 정한 이상 끝까지 한다."},{"i":34,"t":"〜からには","c":"입장·시각","conn":"Vる/Vた + からには","m":"~한 이상에는","tip":"결의·의무. 뒤에는 「べきだ」「つもりだ」「なければならない」가 옴. 회화에서도 자주 씀.","ex":"引き受けたからには、責任を持つ。","exk":"맡은 이상 책임을 진다."},{"i":35,"t":"〜として","c":"입장·시각","conn":"名詞 + として","m":"~로서","tip":"자격·지위. 「〜としては」는 '~로서는'으로 기준을 강조.","ex":"彼は代表として会議に出席した。","exk":"그는 대표로서 회의에 참석했다."},{"i":36,"t":"〜にとって","c":"입장·시각","conn":"名詞 + にとって","m":"~에게 있어서","tip":"평가의 기준이 되는 사람·입장. 뒤에는 평가 표현(大切だ·難しい 등)이 옴.","ex":"私にとって、家族が一番大切だ。","exk":"나에게 있어 가족이 가장 소중하다."},{"i":37,"t":"〜にほかならない","c":"격식·문어","conn":"名詞 / 보통형 + にほかならない","m":"다름 아닌 ~이다","tip":"원인·이유를 단정. 「〜からにほかならない」 형태로 이유를 강조.","ex":"成功は努力の結果にほかならない。","exk":"성공은 다름 아닌 노력의 결과다."},{"i":38,"t":"〜に相違ない","c":"격식·문어","conn":"보통형 + に相違ない","m":"~임에 틀림없다","tip":"문어. 회화의 「〜に違いない」에 해당. 추측을 강하게 단정.","ex":"彼が犯人に相違ない。","exk":"그가 범인임에 틀림없다."},{"i":39,"t":"〜を問わず","c":"격식·문어","conn":"名詞 + を問わず","m":"~을 불문하고","tip":"경험 유무·연령·성별·날씨처럼 대비되는 개념에 붙음. 「〜にかかわらず」와 유사.","ex":"経験の有無を問わず、応募できる。","exk":"경험 유무를 불문하고 지원할 수 있다."},{"i":40,"t":"〜をめぐって","c":"격식·문어","conn":"名詞 + をめぐって","m":"~을 둘러싸고","tip":"논의·대립·분쟁의 대상. 뒤에 「議論」「争い」「意見が分かれる」가 옴.","ex":"その計画をめぐって、議論が続いている。","exk":"그 계획을 둘러싸고 논의가 이어지고 있다."},{"i":41,"t":"〜に沿って","c":"격식·문어","conn":"名詞 + に沿って","m":"~에 따라서 (방침·선을 따라)","tip":"매뉴얼·방침·강·길처럼 따라야 할 선(線)에 씀. 「〜に従って」는 규칙·명령에 순응하는 느낌.","ex":"マニュアルに沿って、作業を進める。","exk":"매뉴얼에 따라 작업을 진행한다."},{"i":42,"t":"〜をはじめ","c":"격식·문어","conn":"名詞 + をはじめ","m":"~을 비롯하여","tip":"대표적인 예를 들고 전체로 넓힘. 「〜をはじめとして」 형태도 있음.","ex":"東京をはじめ、各地でイベントが開かれる。","exk":"도쿄를 비롯해 각지에서 이벤트가 열린다."},{"i":43,"t":"〜に基づいて","c":"격식·문어","conn":"名詞 + に基づいて","m":"~에 근거하여","tip":"데이터·사실·규칙을 근거로 삼음. 뒤에 판단·작성 행위가 옴.","ex":"調査結果に基づいて、報告書を書いた。","exk":"조사 결과에 근거해 보고서를 썼다."},{"i":44,"t":"〜を通じて","c":"격식·문어","conn":"名詞 + を通じて","m":"~을 통해","tip":"수단·매체, 또는 기간 전체. 「〜を通して」와 거의 같음.","ex":"インターネットを通じて情報を得た。","exk":"인터넷을 통해 정보를 얻었다."},{"i":45,"t":"〜に限らず","c":"격식·문어","conn":"名詞 + に限らず","m":"~에 한하지 않고","tip":"범위를 넓힘. 「〜だけでなく」의 문어판. 「〜に限って」는 '하필 ~만'으로 뜻이 다름.","ex":"学生に限らず、社会人も参加できる。","exk":"학생에 한하지 않고 사회인도 참가할 수 있다."},{"i":46,"t":"〜おきに","c":"빈출 확장","conn":"수량 + おきに","m":"~간격으로, ~걸러","tip":"「一日おき」= 하루 건너(이틀에 한 번). 「一日ごと」= 매일. 숫자 함정이 자주 나옴.","ex":"バスは十分おきに出ている。","exk":"버스는 10분 간격으로 다닌다."},{"i":47,"t":"〜ごとに","c":"빈출 확장","conn":"名詞 / Vる + ごとに","m":"~마다","tip":"빠짐없이 전부. 「会うごとに」= 만날 때마다. 「おきに」와 혼동 주의.","ex":"会うごとに、彼は大人っぽくなっていく。","exk":"만날 때마다 그는 어른스러워진다."},{"i":48,"t":"〜つつある","c":"빈출 확장","conn":"Vます어간 + つつある","m":"지금 ~해 가고 있다 (변화 진행)","tip":"문어. 「〜ている」가 단순 상태라면, 「〜つつある」는 변화가 진행 중임을 강조.","ex":"町の人口は減りつつある。","exk":"마을 인구는 줄어들고 있다."},{"i":49,"t":"〜一方だ","c":"빈출 확장","conn":"Vる + 一方だ","m":"~하기만 한다 (한 방향으로 계속)","tip":"한쪽으로만 진행되는 변화. 나쁜 방향(増える·減る·悪くなる)에 자주 씀.","ex":"物価は上がる一方だ。","exk":"물가는 오르기만 한다."},{"i":50,"t":"〜ようがない","c":"빈출 확장","conn":"Vます어간 + ようがない","m":"~할 방법이 없다","tip":"수단이 없어 불가능. 「直しようがない」「連絡しようがない」처럼 가능동사 어간에 붙음.","ex":"壊れてしまって、直しようがない。","exk":"고장 나서 고칠 방법이 없다."},{"i":51,"t":"〜かねない","c":"빈출 확장","conn":"Vます어간 + かねない","m":"~할 수도 있다 (나쁜 가능성)","tip":"주어는 대개 사물·상황. 좋지 않은 결과가 일어날 가능성. 「〜かもしれない」보다 부정적.","ex":"そんなに働けば、体を壊しかねない。","exk":"그렇게 일하면 몸을 망칠 수 있다."},{"i":52,"t":"〜かねる","c":"빈출 확장","conn":"Vます어간 + かねる","m":"~하기 어렵다 (정중한 거절)","tip":"비즈니스 거절 표현. 「お応えしかねます」= 응하기 어렵습니다. 「〜かねない」와 부호가 반대.","ex":"そのご要望にはお応えしかねます。","exk":"그 요청에는 응하기 어렵습니다."},{"i":53,"t":"〜ざるを得ない","c":"빈출 확장","conn":"Vない어간 + ざるを得ない (する→せざるを得ない)","m":"~하지 않을 수 없다","tip":"불가피한 사정. 「〜ないわけにはいかない」보다 문어적이고 강함.","ex":"上司の命令なら従わざるを得ない。","exk":"상사 명령이라면 따르지 않을 수 없다."},{"i":54,"t":"〜わけにはいかない","c":"빈출 확장","conn":"Vる + わけにはいかない","m":"~할 수는 없다 (여의치 않다)","tip":"사회적·도덕적 제약 때문에 안 된다는 뜻. 능력이 없어서가 아님.","ex":"病気の子供を置いて、出かけるわけにはいかない。","exk":"병든 아이를 두고 나갈 수는 없다."},{"i":55,"t":"〜ないまでも","c":"빈출 확장","conn":"Vない + ないまでも","m":"~까지는 아니더라도","tip":"최소한의 기대를 말함. 뒤에는 긍정적 요청·희망이 옴.","ex":"毎日とは言わないまでも、週に一度は連絡してほしい。","exk":"매일까지는 아니더라도 주 1회는 연락해 줬으면 한다."},{"i":56,"t":"〜だけあって","c":"빈출 확장","conn":"名詞 / 보통형 + だけあって","m":"~인 만큼 (기대대로)","tip":"칭찬·긍정 평가에 한정. 「さすが」와 함께 자주 씀. 「〜だけに」는 부정적 감정에도 가능.","ex":"有名な店だけあって、料理がうまい。","exk":"유명한 가게인 만큼 요리가 맛있다."},{"i":57,"t":"〜がたい","c":"빈출 확장","conn":"Vます어간 + がたい","m":"~하기 어렵다 (심리적)","tip":"「信じがたい」「言いがたい」처럼 마음의 저항. 「〜にくい」는 물리적 어려움.","ex":"そんな話は信じがたい。","exk":"그런 이야기는 믿기 어렵다."},{"i":58,"t":"〜っぱなし","c":"빈출 확장","conn":"Vます어간 + っぱなし","m":"~한 채로 내버려둠","tip":"부정적 평가. 「開けっぱなし」「置きっぱなし」처럼 그대로 둔 상태.","ex":"窓を開けっぱなしにして出かけた。","exk":"창문을 열어 둔 채 외출했다."},{"i":59,"t":"〜がち","c":"빈출 확장","conn":"Vます어간 / 名詞 + がち","m":"~하기 쉽다 (좋지 않은 경향)","tip":"부정적 경향. 「病気がち」「遅れがち」「曇りがち」. 「〜気味」는 정도가 약간 있음.","ex":"冬は運動不足になりがちだ。","exk":"겨울에는 운동 부족이 되기 쉽다."},{"i":60,"t":"〜気味","c":"빈출 확장","conn":"名詞 / Vます어간 + 気味","m":"~기미가 있다","tip":"정도가 조금 있는 상태. 「疲れ気味」「太り気味」. 「〜がち」보다 가볍고 일시적.","ex":"最近、疲れ気味だ。","exk":"요즘 피곤한 기미가 있다."}]},"quiz":{"quiz":[{"i":1,"tag":"문맥 규정","q":"会議は来週に______された。","opts":["延期","延長","継続","移転"],"a":0,"exp":"날짜를 뒤로 미루는 것은 延期(えんき). 延長은 이미 정한 기간을 늘리는 것(회의 시간 연장 등), 継続은 계속함, 移転은 장소를 옮기는 것."},{"i":2,"tag":"문맥 규정","q":"台風の______で、多くの便が欠航した。","opts":["影響","反映","映像","印象"],"a":0,"exp":"影響(えいきょう)=영향. 反映=반영, 映像=영상, 印象=인상. '영향으로'는 影響で."},{"i":3,"tag":"문맥 규정","q":"会社は新しい______を発表し、在宅勤務を進めることにした。","opts":["方針","方向","方法","方式"],"a":0,"exp":"方針(ほうしん)=방침, 기본적인 나아갈 방향. 方向은 물리적 방향이나 추세, 方法은 방법, 方式은 방식·시스템."},{"i":4,"tag":"문맥 규정","q":"都市と地方の______が問題になっている。","opts":["格差","区別","誤差","差別"],"a":0,"exp":"格差(かくさ)=사회적 격차. 区別=구별, 誤差=오차, 差別=차별."},{"i":5,"tag":"문맥 규정","q":"彼の説明には______がなく、誰も納得しなかった。","opts":["説得力","理解力","表現力","注意力"],"a":0,"exp":"説得力(せっとくりょく)=설득력. '説得力がない'로 '납득시키는 힘이 없다'."},{"i":6,"tag":"문맥 규정","q":"この講座は初心者を______としている。","opts":["対象","対照","対比","対応"],"a":0,"exp":"対象(たいしょう)=대상. 対照(たいしょう)는 발음이 같지만 '대조'라는 뜻. 対比=대비, 対応=대응."},{"i":7,"tag":"문맥 규정","q":"彼は毎日少しずつお金を______いる。","opts":["蓄えて","数えて","比べて","支えて"],"a":0,"exp":"蓄える(たくわえる)=모으다, 비축하다. 数える=세다, 比べる=비교하다, 支える=지탱하다."},{"i":8,"tag":"문맥 규정","q":"彼は自分の間違いを______。","opts":["認めた","覚えた","数えた","疑った"],"a":0,"exp":"認める(みとめる)=인정하다. 覚える=외우다/기억하다, 疑う=의심하다."},{"i":9,"tag":"문맥 규정","q":"出張の______をまとめて部長に送った。","opts":["報告書","説明書","案内書","申請書"],"a":0,"exp":"出張の報告書=출장 보고서. 説明書=설명서, 案内書=안내서, 申請書=신청서."},{"i":10,"tag":"문맥 규정","q":"その判断は______だと思う。","opts":["妥当","相当","当然","対等"],"a":0,"exp":"妥当(だとう)=타당함. 相当=상당, 当然=당연, 対等=대등. 適当은 '적당'이지만 '대충'이라는 뉘앙스가 강해 이런 판단 문장에는 잘 쓰지 않음."},{"i":11,"tag":"문맥 규정","q":"長い______の結果、新しい案を採用することになった。","opts":["話し合い","言い合い","知り合い","待ち合わせ"],"a":0,"exp":"話し合い=논의. 言い合い=말다툼, 知り合い=지인, 待ち合わせ=약속 장소에서 만나기."},{"i":12,"tag":"문맥 규정","q":"この会社は海外企業と______している。","opts":["提携","提供","提案","提出"],"a":0,"exp":"提携(ていけい)=제휴. 提供=제공, 提案=제안, 提出=제출. 모두 てい케이 계열 발음 함정."},{"i":13,"tag":"유의 표현","q":"「たまたま」と意味が最も近いものはどれか。","opts":["偶然","突然","当然","自然"],"a":0,"exp":"たまたま=우연히. 突然=갑자기, 当然=당연히, 自然=자연히."},{"i":14,"tag":"유의 표현","q":"「明らかな」と意味が最も近いものはどれか。","opts":["はっきりした","あいまいな","くわしい","めずらしい"],"a":0,"exp":"明らかな=명백한 → はっきりした(분명한). あいまいな=애매한."},{"i":15,"tag":"유의 표현","q":"「異なる」と意味が最も近いものはどれか。","opts":["違う","変わる","似る","合う"],"a":0,"exp":"異なる=다르다 → 違う. 変わる=변하다, 似る=닮다, 合う=맞다."},{"i":16,"tag":"유의 표현","q":"「思いきって」と意味が最も近いものはどれか。","opts":["勇気を出して","あわてて","しかたなく","いやいや"],"a":0,"exp":"思いきって=큰맘 먹고, 과감하게 → 勇気を出して(용기를 내어)."},{"i":17,"tag":"유의 표현","q":"「面倒な」と意味が最も近いものはどれか。","opts":["手間がかかる","危険な","退屈な","地味な"],"a":0,"exp":"面倒な=번거로운, 손이 많이 가는 → 手間がかかる(품이 든다)."},{"i":18,"tag":"유의 표현","q":"「手軽な」と意味が最も近いものはどれか。","opts":["簡単な","贅沢な","幼稚な","大変な"],"a":0,"exp":"手軽な=손쉬운, 간편한 → 簡単な. 贅沢な=사치스러운."},{"i":19,"tag":"한자 읽기","q":"継続","opts":["けいぞく","けいそく","けいしょう","けいぞう"],"a":0,"exp":"継続=けいぞく. そ가 아니라 ぞ(탁음). 장음 けい·ぞく까지 정확히."},{"i":20,"tag":"한자 읽기","q":"貿易","opts":["ぼうえき","もうえき","ぼうやく","ぼくえき"],"a":0,"exp":"貿易=ぼうえき. 貿는 음독 ぼう."},{"i":21,"tag":"한자 읽기","q":"期限切れ","opts":["きげんぎれ","きかんぎれ","きげんきれ","きけんぎれ"],"a":0,"exp":"期限切れ=きげんぎれ. 切れ가 뒤에 붙어 탁음화(ぎれ)."},{"i":22,"tag":"한자 읽기","q":"軽傷","opts":["けいしょう","けいそう","けいざい","けいしょく"],"a":0,"exp":"軽傷=けいしょう. 軽는 けい, 傷는 しょう(장음 주의)."},{"i":23,"tag":"한자 읽기","q":"模範","opts":["もはん","もうはん","まはん","もばん"],"a":0,"exp":"模範=もはん. もうはん으로 장음화하지 않도록 주의."},{"i":24,"tag":"한자 읽기","q":"極端","opts":["きょくたん","ごくたん","きょくはん","きょっかん"],"a":0,"exp":"極端=きょくたん. 極는 음독 きょく."},{"i":25,"tag":"한자 읽기","q":"勢い","opts":["いきおい","いきよい","いきごみ","ちから"],"a":0,"exp":"勢い=いきおい. 훈독 명사. いきよい(勢いよく)는 부사형."},{"i":26,"tag":"문법","q":"緊張の______、スピーチの内容を全部忘れてしまった。","opts":["あまりに","ばかりに","うちに","次第"],"a":0,"exp":"감정 명사에 붙어 '너무 ~한 나머지'는 名詞+の+あまり. ばかりに는 동사·형용사에 붙어 '~한 탓에'."},{"i":27,"tag":"문법","q":"電車が遅れた______、遅刻してしまった。","opts":["ものだから","ものの","ものなら","ものか"],"a":0,"exp":"변명하듯 이유를 말하는 구어 표현은 ものだから. ものの는 '~이긴 하지만' 역접."},{"i":28,"tag":"문법","q":"高い______、味はそれほどでもない。","opts":["わりに","ばかりに","だけに","あまり"],"a":0,"exp":"기대와 실제의 불균형은 わりに. だけに는 '~인 만큼'으로 기대에 맞는 결과."},{"i":29,"tag":"문법","q":"知らない______、知ったふりをする。","opts":["くせに","ものの","わりに","とはいえ"],"a":0,"exp":"비난·경멸의 감정은 くせに. 사람의 행동에만 씀."},{"i":30,"tag":"문법","q":"余計なことを言った______、嫌われてしまった。","opts":["ばかりに","ものの","くせに","わりに"],"a":0,"exp":"하나의 원인 때문에 나쁜 결과 → ばかりに. 뒤에는 반드시 부정적 결과."},{"i":31,"tag":"문법","q":"引き受けた______、最後まで責任を持ってやる。","opts":["からには","からこそ","からといって","からして"],"a":0,"exp":"'맡은 이상'이라는 결의는 からには. 뒤에 べきだ·つもりだ·なければならない 등이 옴."},{"i":32,"tag":"문법","q":"経験の有無______、誰でも応募できます。","opts":["を問わず","をめぐって","に沿って","を通じて"],"a":0,"exp":"대비되는 개념을 불문한다는 뜻은 を問わず. をめぐって는 '~을 둘러싸고'."},{"i":33,"tag":"문법","q":"その計画______、議論が続いている。","opts":["をめぐって","を問わず","に基づいて","に応じて"],"a":0,"exp":"논의·대립의 대상은 をめぐって. 뒤에 議論·争い가 오는 것이 정형."},{"i":34,"tag":"문법","q":"ドアを開けるか開けないかの______、雨が降り出した。","opts":["うちに","たびに","とたん","最中に"],"a":0,"exp":"「~か~ないかのうちに」로 '~하자마자'. とたん은 Vた에 붙으므로 접속이 맞지 않음."},{"i":35,"tag":"문법","q":"上司の命令なら、______を得ない。","opts":["従わざる","従うざる","従わないざる","従わせざる"],"a":0,"exp":"「ざるを得ない」는 ない형 어간에 붙음. 従う→従わ+ざるを得ない. する는 せざるを得ない."},{"i":36,"tag":"문법","q":"そんなに働けば、体を壊し______。","opts":["かねない","かねる","がたい","ようがない"],"a":0,"exp":"나쁜 가능성은 かねない. かねる는 '~하기 어렵습니다'라는 정중한 거절."},{"i":37,"tag":"문법","q":"春______、まだ寒い日が続く。","opts":["とはいえ","とは限らず","というより","とすれば"],"a":0,"exp":"'봄이라고는 해도'는 とはいえ. 앞을 인정하며 뒤에서 제한을 붙임."}]},"reading":{"strategy":{"types":[{"name":"단문 이해","jp":"内容理解（短文）","len":"200자 안팎","ask":"요지·세부 내용","time":"1문항 2~3분","how":"첫 문장과 마지막 문장에 요지가 오는 경우가 많음. 선택지를 먼저 읽고 지문에서 근거 문장만 확인."},{"name":"중문 이해","jp":"内容理解（中文）","len":"500자 안팎","ask":"이유·인과관계","time":"지문당 5~6분","how":"「なぜなら」「そのため」 앞뒤의 인과를 표시하며 읽기. 단락마다 한 줄 요지를 머릿속으로 정리."},{"name":"통합 이해","jp":"統合理解","len":"A·B 두 지문","ask":"공통점·차이점","time":"8분","how":"A를 읽고 입장을 한 줄로 요약 → B도 같은 방식 → 그다음 비교. 두 지문을 번갈아 읽으면 헷갈림."},{"name":"주장 이해","jp":"主張理解（長文）","len":"900자 안팎","ask":"필자가 가장 말하고 싶은 것","time":"10~12분","how":"일반론(~と言われている)과 필자 의견(~のではないか)을 구분. しかし 뒤에 주장이 오는 경우가 많음."},{"name":"정보 검색","jp":"情報検索","len":"안내문·표 700자 안팎","ask":"조건에 맞는 항목 찾기","time":"5분","how":"지문을 읽지 말고 질문의 인물 조건부터 뽑아 표와 대조. ※주석·ただし 뒤를 반드시 확인."}],"order":["정보 검색 (쉬운 득점을 먼저 확보)","단문","중문","통합 이해","주장 이해 (장문은 마지막에 집중해서)"],"rules":["질문 선독: 지문보다 질문·선지를 먼저 읽고 무엇을 찾을지 정한 뒤 해당 부분만 스캔. 문항당 30~40초가 줄어든다.","2분 룰: 단문 1문항에 2분을 넘기면 △표시하고 넘어간다. 한 문제에 붙잡히면 뒤의 장문이 통째로 날아간다.","역접 뒤가 답: しかし·だが·ところが 뒤 문장이 필자의 주장인 경우가 매우 많다. 역접이 보이면 집중도 최대.","지시어는 직전 문장: 「それ」「その」가 무엇을 가리키는지 묻는 문제는 바로 앞 문장·절에 답이 있는 경우가 대부분.","오답 3패턴: ①지문 단어를 그대로 썼지만 논지가 반대 ②「必ず」「絶対」 같은 과장·극단 ③지문에 없는 정보를 덧붙임. 이 셋은 의심부터.","시간 총량(연습용): 언어지식 약 30분 + 독해 약 65분 + 검토 5분. 독해는 105분 한 블록 안에서 반드시 시계를 본다.","모르는 단어에서 멈추지 않기: 한 단어에 30초 이상 쓰면 계획이 무너진다. 문맥으로 추측하고 넘어간 뒤 질문과 선택지 기준으로 돌아온다."],"connectives":[{"w":"しかし・だが","m":"그러나 (역접)","role":"뒤에 필자 주장이 온다"},{"w":"つまり・要するに","m":"즉, 요컨대","role":"앞 내용의 결론·바꿔 말하기"},{"w":"なぜなら","m":"왜냐하면","role":"뒤에 이유·근거"},{"w":"たとえば","m":"예를 들어","role":"구체 예시 — 흐름만 잡고 넘어가도 됨"},{"w":"したがって・そのため","m":"따라서, 그 때문에","role":"원인 → 결과"},{"w":"一方・これに対して","m":"한편, 이에 반해","role":"대조 — 통합 이해의 핵심 신호"},{"w":"その結果","m":"그 결과","role":"결과 제시"},{"w":"ただし・なお","m":"단, 또한","role":"예외·보충 — 정보 검색의 함정 위치"},{"w":"むしろ","m":"오히려","role":"앞을 부정하고 다른 쪽을 강조"},{"w":"とは限らない","m":"반드시 ~인 것은 아니다","role":"부분 부정 — 단정으로 읽으면 오답"}],"pointers":[{"w":"これ・この","m":"바로 앞에서 말한 내용 전체 또는 가까운 것"},{"w":"それ・その","m":"직전 문장·절에서 말한 내용 (가장 빈출)"},{"w":"あれ・あの","m":"둘 다 아는 먼 내용·과거"},{"w":"そう・そのように","m":"앞에서 말한 방법·상태"},{"w":"そのため","m":"바로 앞의 원인 → 결과"},{"w":"それでも","m":"그래도 (앞을 인정하고 반대 사실)"}],"claims":[{"w":"〜のではないか（だろうか）","m":"~한 것이 아닐까 — 필자의 완곡한 주장"},{"w":"〜べきだ・〜べきではない","m":"~해야 한다 — 당위 주장"},{"w":"〜と言われている","m":"~라고들 한다 — 일반론. 필자 의견과 구별!"},{"w":"〜とは限らない","m":"반드시 ~는 아니다 — 부분 부정"},{"w":"〜にほかならない","m":"다름 아닌 ~이다 — 단정"},{"w":"〜のではない。〜のだ","m":"~이 아니다. ~이다 — 주장의 핵심 대비"}],"infoTips":["질문 속 인물의 조건(요일·시간·금액·수준·대상)에 번호를 붙여 적는다. 지문을 먼저 읽지 않는다.","후보마다 조건을 하나씩 대조하고, 어긋나는 즉시 지운다. 모든 조건을 다 확인할 필요는 없다.","※·ただし·なお로 시작하는 줄은 예외 없이 정답과 관련된다. 마지막 30초는 주석 확인에 쓴다.","「別途」「教材費」「入会金」이 보이면 다른 금액을 더해야 한다는 신호. 총액을 묻는 문제가 함정.","「割引の併用はできません」= 할인은 하나만. 20%+10%=30%로 계산하면 오답.","경계값 4종: 以上(이상, 포함) / 以下(이하, 포함) / 未満(미만, 불포함) / 超える(초과, 불포함)."],"bounds":[{"w":"以上","k":"いじょう","m":"~ 이상 (경계 포함)"},{"w":"以下","k":"いか","m":"~ 이하 (경계 포함)"},{"w":"未満","k":"みまん","m":"~ 미만 (경계 불포함)"},{"w":"超える","k":"こえる","m":"~ 초과 (경계 불포함)"}]},"passages":[{"id":1,"type":"단문 이해","len":"약 190자","title":"수면과 생활 리듬","text":"「睡眠時間を増やせば健康になれる」と考える人は多い。しかし、大切なのは長さだけではない。毎日ほぼ同じ時刻に寝て、同じ時刻に起きるリズムのほうが、体に強く影響するという研究もある。週末に長く寝て平日の不足を埋めようとしても、体内時計は一度には戻らない。まずは起きる時刻をそろえることから始めてはどうだろう。","questions":[{"q":"筆者の考えに最も近いものはどれか。","opts":["睡眠時間を長くすれば必ず健康になれる。","週末に長く寝て平日の不足を補うのがよい。","起きる時刻を一定にすることが大切だ。","体内時計は週末に簡単に戻すことができる。"],"a":2,"exp":"「しかし」の後が主張。「大切なのは長さだけではない」「まずは起きる時刻をそろえることから」から、起床時刻を一定にすることを勧めている。1·2는 필자가 부정한 내용, 4는 「体内時計は一度には戻らない」와 반대."}]},{"id":2,"type":"중문 이해","len":"약 350자","title":"보고의 양보다 질","text":"会社では「報告・連絡・相談が大切だ」とよく言われる。しかし、何でも報告すればいいというわけではない。忙しい上司にとって、判断の必要がない細かい報告は、仕事の手を止めさせる邪魔になることもある。大切なのは、相手が決める必要があるかどうかを自分で考えてから伝えることだ。たとえば、金額の小さい買い物なら自分で判断し、結果だけを伝える。逆に、他の部署に影響する話は早めに相談する。報告の量を増やすより、質を上げるほうが、結局は信頼につながる。","questions":[{"q":"筆者が最も言いたいことはどれか。","opts":["報告の量を増やせば信頼される。","相手が判断する必要があるかを考えてから報告することが大切だ。","細かいことほど詳しく報告したほうがよい。","上司には結果だけを伝えればよい。"],"a":1,"exp":"「大切なのは、相手が決める必要があるかどうかを自分で考えてから伝えることだ」が要旨。量より質という結論にもつながる。"},{"q":"細かい報告が問題になるのはなぜか。","opts":["情報が不足するから。","上司の判断が間違うから。","上司の仕事を止めさせることになるから。","報告の内容が正確でないから。"],"a":2,"exp":"「判断の必要がない細かい報告は、仕事の手を止めさせる邪魔になることもある」とある。1·4는 지문에 없는 내용, 2는 지문의 논지와 다름."}]},{"id":3,"type":"주장 이해 (장문)","len":"약 430자","title":"실패에서 배우는 사람","text":"「失敗しないように」と教えられて育つと、人は失敗を極端に恐れるようになる。たしかに失敗は痛い。時間もお金も失う。だが、一度も失敗したことのない人には、やり直す力が育たない。うまくいかない原因を自分で見つけ、方法を変える。この繰り返しが、次の困難に耐える力を生む。だからといって、むやみに失敗すればいいわけではない。同じ失敗を繰り返さないために記録を残すこと。失敗を隠さずに話せる相手を持つこと。こうした準備があって初めて、失敗は「経験」と呼べるものになる。私たちが育てるべきなのは、失敗しない人ではなく、失敗から学べる人なのだ。","questions":[{"q":"筆者の主張として最も適切なものはどれか。","opts":["失敗は避けるべきだ。","失敗しない人を育てるべきだ。","失敗から学べる人を育てるべきだ。","失敗は記録すればそれでよい。"],"a":2,"exp":"最後の一文「育てるべきなのは、失敗しない人ではなく、失敗から学べる人なのだ」が主張そのもの。"},{"q":"失敗が「経験」になるために必要なこととして、筆者が挙げているものはどれか。","opts":["失敗を早く忘れること。","失敗を記録し、隠さず話せる相手を持つこと。","同じ失敗を何度も繰り返すこと。","失敗したことを誰にも言わないこと。"],"a":1,"exp":"「記録を残すこと」「失敗を隠さずに話せる相手を持つこと」の二点。隠すこと(4)は逆。"}]},{"id":4,"type":"정보 검색","len":"표 + 조건","title":"빵 만들기 교실 안내","text":"パン作り教室　4月開講（各教室とも月4回）\n\n教室A　火曜 19:00〜21:00　受講料 月5,000円　定員8名　初級\n教室B　火曜 10:00〜12:00　受講料 月3,500円　定員10名　初級\n教室C　水曜 19:00〜21:00　受講料 月4,500円　定員6名　中級〜上級\n教室D　火曜 19:30〜21:30　受講料 月6,000円　定員8名　初級\n\n※受講料とは別に、教材費2,000円（初回のみ）が必要です。\n※4月10日までのお申し込みは、入会金3,000円が無料になります。\n※定員になり次第、締め切ります。\n※教室Cはパン作り経験者向けです。\n\n田中さんは会社員で、平日の昼間は働いている。毎週火曜日の夜なら時間が取れる。月の受講料は5,000円以内にしたい。パン作りは初めてだ。4月8日に申し込む予定だ。","questions":[{"q":"田中さんに合う教室はどれか。","opts":["教室A","教室B","教室C","教室D"],"a":0,"exp":"조건은 ①화요일 밤 ②월 수강료 5,000엔 이내 ③초급. B는 화요일이지만 오전 10시라 퇴근 후 불가, C는 수요일+중급, D는 6,000엔으로 예산 초과. A만 세 조건을 모두 만족. 교재비 2,000엔은 어느 교실이든 공통으로 붙으므로 선택에는 영향이 없다."},{"q":"4月8日に申し込む場合、田中さんに当てはまることはどれか。","opts":["入会金3,000円を払う必要がある。","入会金3,000円が無料になる。","教材費はかからない。","中級クラスに申し込める。"],"a":1,"exp":"「4月10日までのお申し込みは、入会金3,000円が無料」に該当。教材費2,000円は初回のみ必要なので3은 오답."}]}]},"listening":{"listening":{"types":[{"n":"과제 이해","jp":"課題理解","q":"5문항","ask":"이 다음에 무엇을 하는가","trap":"의견 변경(やっぱり·じゃあ 뒤), 순서(まず·その前に 뒤가 먼저 할 일), 부정 지시(〜しなくていい)","how":"선지가 인쇄되어 있음 → 음성 전에 반드시 읽기. 마지막에 확정된 행동이 정답."},{"n":"포인트 이해","jp":"ポイント理解","q":"6문항","ask":"이유·시간·장소 등 특정 정보","trap":"정정(あ、違う・訂正します), 부분 부정(必ずしも〜ない・とは限らない)","how":"질문이 먼저 나옴. 무엇을 들을지 정하고 그 부분만 집중. 実は·最も·特に 뒤가 단서."},{"n":"개요 이해","jp":"概要理解","q":"5문항","ask":"화자의 주장·의도","trap":"세부에 끌려 요지를 놓침, 중간의 예시를 결론으로 착각","how":"선지가 없음 → 메모 필수. 도입(주제) → 전개 → 결론의 흐름에서 결론을 잡기."},{"n":"즉시 응답","jp":"即時応答","q":"12문항","ask":"짧은 말에 맞는 응답","trap":"문장 속 단어를 그대로 반복하는 선지, 경어·관용 표현 오해","how":"한 문장이 끝나면 바로 판단. 첫 단어만 듣고 고르지 말고 말끝(의도)까지."},{"n":"통합 이해","jp":"統合理解","q":"4문항","ask":"여러 정보를 종합해 판단","trap":"두 후보의 조건 하나씩을 섞어 만든 선지, 마지막에 바뀐 조건","how":"후보별 특징을 표처럼 메모(요일·가격·조건). 마지막에 누가 무엇을 고르는지 확인."}],"contractions":[{"a":"〜ている","b":"〜てる","ex":"食べている → 食べてる"},{"a":"〜ておく","b":"〜とく","ex":"買っておく → 買っとく"},{"a":"〜てしまう","b":"〜ちゃう / じゃう","ex":"忘れてしまう → 忘れちゃう"},{"a":"〜でしまう","b":"〜じゃう","ex":"飲んでしまう → 飲んじゃう"},{"a":"〜なければ","b":"〜なきゃ","ex":"行かなければ → 行かなきゃ"},{"a":"〜なくては","b":"〜なくちゃ","ex":"急がなくては → 急がなくちゃ"},{"a":"〜という","b":"〜って","ex":"行くという → 行くって"},{"a":"〜というのは","b":"〜ってのは","ex":"安いというのは → 安いってのは"},{"a":"〜ているの","b":"〜てんの","ex":"何をしているの → 何してんの"},{"a":"〜れば / 〜ければ","b":"〜りゃ / 〜きゃ","ex":"すれば → すりゃ / 行かなければ → 行かなきゃ"},{"a":"〜ておいた","b":"〜といた","ex":"準備しておいた → 準備しといた"},{"a":"〜のだ / 〜のです","b":"〜んだ / 〜んです","ex":"どうしたのですか → どうしたんですか"}],"confusables":[{"pair":"おばさん / おばあさん","m":"아주머니 / 할머니","note":"장음 1박자 차이"},{"pair":"ビル / ビール","m":"빌딩 / 맥주","note":"장음"},{"pair":"きて / きって","m":"와서 / 우표","note":"촉음"},{"pair":"でんき / てんき","m":"전기 / 날씨","note":"탁음"},{"pair":"しんぶん / しゅみ","m":"신문 / 취미","note":"ん·모음 구분"},{"pair":"いっぷん / さんぷん / ろっぷん / はっぷん","m":"1분 / 3분 / 6분 / 8분","note":"수 표현의 촉음·반탁음 변화"}],"items":[{"id":1,"type":"과제 이해","title":"회의 자료 준비","intro":"会社で男の人が女の人と話しています。","question":"女の人はこのあとまず何をしますか。","opts":["資料を七人分コピーする","資料を八人分コピーする","資料にホッチキスをかける","資料を佐藤さんに渡す"],"a":0,"script":[{"s":"男","t":"悪いけど、明日の会議の資料、人数分コピーしておいてくれる？"},{"s":"女","t":"はい。何人分ですか。"},{"s":"男","t":"えーと、八人…あ、でも佐藤さんは出張でいないから、七人でいいよ。"},{"s":"女","t":"七人分ですね。コピーしたあと、どうしましょうか。"},{"s":"男","t":"席に置いておいて。あ、ホッチキスはしなくていいから。"}],"exp":"음성 중에 「八人」가 「七人」로 정정됨 → 정정 후 정보가 정답. 「ホッチキスはしなくていい」는 하지 않아도 되는 일이라 오답. '먼저' 할 일은 복사이므로 1번.","key":"정정(あ、でも…七人でいい) + 부정 지시(しなくていい)"},{"id":2,"type":"과제 이해","title":"의자 배달 날짜","intro":"店で女の人が店員と話しています。","question":"いすはいつ届きますか。","opts":["火曜日の午前","火曜日の午後","水曜日の四時以降","水曜日の午前"],"a":2,"script":[{"s":"女","t":"すみません、この椅子、届けてもらえますか。"},{"s":"男","t":"はい。お届けは来週の火曜か水曜になりますが。"},{"s":"女","t":"火曜は出かけているので…。あ、でも午前中なら家にいます。"},{"s":"男","t":"では火曜の午前にいたしましょうか。"},{"s":"女","t":"そうですね…やっぱり水曜の午後のほうが確実です。四時以降でお願いします。"},{"s":"男","t":"かしこまりました。水曜の四時以降ですね。"}],"exp":"火曜の午前으로 정해질 뻔했지만 「やっぱり水曜の午後」로 변경. 마지막에 확정된 水曜の四時以降가 정답. やっぱり 뒤를 놓치면 1번을 고르게 되는 전형적 함정.","key":"의견 변경(やっぱり) — 마지막 결정"},{"id":3,"type":"포인트 이해","title":"店を選んだ理由","intro":"女の人が男の人にインタビューしています。","question":"男の人がこの店を選んだ一番の理由は何ですか。","opts":["駅から近いこと","値段が安いこと","朝早く開いていること","店員が親切なこと"],"a":2,"script":[{"s":"女","t":"この店を選んだ理由は何ですか。"},{"s":"男","t":"そうですね、駅から近いことですかね。"},{"s":"女","t":"駅から近いから、通いやすいんですね。"},{"s":"男","t":"ええ。ただ、実は、値段よりも、朝早く開いていることが一番大きいんです。仕事の前に寄れるので。"},{"s":"女","t":"じゃあ、時間が決め手だったんですね。"},{"s":"男","t":"はい、そうなんです。"}],"exp":"最初に出た 駅から近い는 표면적 이유. 「実は…一番大きい」 뒤의 朝早く開いていることが 진짜 답. 実は·一番 같은 신호어를 잡는 훈련.","key":"実は + 一番 — 진짜 이유"},{"id":4,"type":"포인트 이해","title":"打ち合わせの時間","intro":"電話で男の人が予約の変更を伝えています。","question":"打ち合わせは何時からになりますか。","opts":["二時","三時","三時半","四時"],"a":2,"script":[{"s":"男","t":"もしもし、明日の打ち合わせなんですが、三時からでしたよね。"},{"s":"女","t":"えーと、二時からになっておりますが。"},{"s":"男","t":"あ、そうでしたか。すみません。では、三時半に変更できますか。"},{"s":"女","t":"少々お待ちください。…はい、三時半からでしたら空いております。"},{"s":"男","t":"じゃあ、それでお願いします。"}],"exp":"처음 남자는 三時, 여자는 二時라고 말해 숫자가 흔들림. 최종적으로 三時半に変更で合意 → 3번. 숫자는 지우지 말고 옆에 새 정보를 덧쓰는 메모법이 유효.","key":"숫자 정정 — 최종 합의 시각"},{"id":5,"type":"개요 이해","title":"화면으로 읽는 독서","intro":"ラジオでアナウンサーが話しています。","question":"話し手が最も言いたいことは何ですか。","opts":["紙の本だけを読むべきだ。","画面で読むのはやめるべきだ。","読んだあとに内容が残るかを意識すべきだ。","できるだけ速く読む練習をすべきだ。"],"a":2,"script":[{"s":"女","t":"最近、スマートフォンで本を読む人が増えています。便利な一方で、「読んだ気になるだけ」という声も聞きます。画面では、目が流し読みに慣れてしまうからです。もちろん、紙の本が絶対にいいと言うつもりはありません。大事なのは、内容を自分のことばで説明できるかどうかです。読み方を選ぶより、読んだあとに何が残るかを意識してみてください。"}],"exp":"紙か画面かを論じるのではなく「大事なのは、内容を自分のことばで説明できるかどうか」「読んだあとに何が残るか」に着地。1·2는 「紙が絶対にいいと言うつもりはありません」로 부정됨.","key":"選択肢の否定(〜つもりはありません) 뒤 주장"},{"id":6,"type":"즉시 응답","title":"퇴근 인사","intro":"会社で、男の人が先に帰る同僚に言います。（선지는 연습용으로 표시했습니다. 실제 시험에서는 음성만 나옵니다.）","question":"何と言いますか。","opts":["お疲れさまでした。","おかげさまで。","お待たせしました。","いただきます。"],"a":0,"script":[{"s":"男","t":"お先に失礼します。"}],"exp":"「お先に失礼します」(먼저 들어가겠습니다)에 대한 자연스러운 응답은 「お疲れさまでした」. おかげさまで=덕분에, お待たせしました=기다리게 해서 죄송합니다, いただきます=잘 먹겠습니다.","key":"퇴근 인사 → お疲れさまでした"},{"id":7,"type":"즉시 응답","title":"복사 부탁","intro":"職場で、先輩が後輩に頼みます。（선지는 연습용 표시입니다.）","question":"何と答えますか。","opts":["はい、承知しました。","いいえ、けっこうです。","おかまいなく。","おそれいります。"],"a":0,"script":[{"s":"女","t":"この書類、コピーしておいてくれる？"}],"exp":"업무 부탁에 대한 승낙은 「承知しました」. けっこうです=사양합니다, おかまいなく=신경 쓰지 마세요, おそれいります=감사합니다/죄송합니다로 어긋남.","key":"부탁 → 承知しました"},{"id":8,"type":"통합 이해","title":"携帯プランの選択","intro":"携帯電話の店で、女の人が店員と話しています。","question":"女の人はどのプランにしますか。","opts":["Aプラン","Bプラン","両方","どちらでもない"],"a":1,"script":[{"s":"女","t":"今使っているプランが高くて。データをあまり使わないんですけど、安いプランはありますか。"},{"s":"男","t":"はい、二つあります。Aプランは、データが三ギガで、月二千円。通話は三十秒二十円です。Bプランは、データが一ギガで、月千五百円。通話は三十秒十円です。"},{"s":"女","t":"通話は月に一回、五分くらいしかしないんです。"},{"s":"男","t":"そのくらいでしたら、Bプランでも足りると思います。データは一ギガで大丈夫ですか。"},{"s":"女","t":"家ではWi-Fiを使うので、たぶん大丈夫です。"},{"s":"男","t":"では、Bプランにしておきましょうか。"},{"s":"女","t":"はい、そうしてください。"}],"exp":"조건은 ①데이터를 많이 쓰지 않음 ②통화가 아주 적음 → B로 충분. 마지막에 「Bプランにしておきましょうか」→「はい」로 확정. A를 고르게 하려고 가격·용량을 섞은 선지가 함정.","key":"조건 종합 + 마지막 확정"}]}},"tips":{"exam":{"facts":[{"k":"시험일","v":"2026년 12월 6일 (일) · N1·N2는 오전 실시"},{"k":"입실 완료","v":"09:40까지 (한국 기준). 이후 출입구 봉쇄 — 1분만 늦어도 응시 불가"},{"k":"1교시","v":"언어지식(문자·어휘·문법) + 독해 = 105분 (10:00 시작)"},{"k":"2교시","v":"청해 약 50분 (녹음 길이에 따라 종료 시각 변동)"},{"k":"합격 기준","v":"180점 만점에 90점 + 언어지식·독해·청해 각 19점 이상 (한 과목이라도 19점 미만이면 불합격)"},{"k":"준비물","v":"수험표, 규정 신분증(실물 권장), HB연필·샤프, 지우개, 아날로그 손목시계"},{"k":"주의","v":"볼펜·사인펜 답안은 채점되지 않음. 휴대전화·스마트워치는 전원을 끄고 봉투에 봉인 — 울리거나 켜면 부정행위로 해당 회차 무효 + 2년 응시 제한"}]},"sources":[{"name":"Google · 일반 웹 (전략·시간 배분)","cls":"","note":"여러 학습 사이트의 공통 결론을 정리했습니다.","items":[{"t":"독해는 시간 싸움 — 105분 배분 공식","d":"문자·어휘 약 15~30분 + 문법 약 20분 + 독해 약 65분 + 검토 5분. 앞 파트에서 1~2분씩 흘리면 장문에서 그대로 무너집니다.","meta":"ekunblog, nugunahrd 종합"},{"t":"유형별 권장 시간","d":"단문 2~3분 / 중문 5~6분 / 통합 8분 / 장문 10~12분 / 정보검색 5분. 단문 1문항 2분 초과 = 즉시 표시하고 넘기기(2분 룰).","meta":"ekunblog · nugunahrd"},{"t":"풀이 순서는 정보검색부터","d":"정보검색(표·안내문)은 문장 이해 부담이 적어 5분 안에 처리 가능. 정보검색 → 단문 → 중문 → 통합 → 장문 순이 득점에 유리하다는 후기가 많습니다.","meta":"ekunblog"},{"t":"질문 선독(先読み)","d":"지문 전에 질문·선지를 먼저 읽고 무엇을 찾을지 정한 뒤 해당 부분만 스캔. 문항당 30~40초 절약.","meta":"ekunblog · nugunahrd"},{"t":"과락 구조를 먼저 이해","d":"총점이 합격선을 넘어도 한 구분이라도 19점 미만이면 불합격. 약한 파트는 '과락 방어'까지만, 강한 파트에 시간을 몰아주는 전략이 유효합니다.","meta":"JLPT 공식 성적 안내 기준"},{"t":"정보검색은 주석에서 갈린다","d":"표 본문만 보면 맞고 ※·ただし까지 보면 틀리는 선지가 기본 설계. 別途·教材費·入会金은 총액에 더하기, 割引の併用不可면 할인은 하나만. 以上/以下(포함) vs 未満/超える(불포함) 경계값 확인.","meta":"aurothy 정보검색 노트"}],"links":[{"t":"JLPT N2 독해 시간 배분 전략","u":"https://ekunblog.com/blog/jlpt-n2-reading-time-management-strategy/","d":"유형별 시간표·풀이 순서"},{"t":"독해 시간관리와 풀이 전략 (누구나HRD)","u":"https://nugunahrd.com/resources/jlpt-n2-strategy/5","d":"105분 배분 공식, 지시어·접속사 추적법"},{"t":"정보검색 공략 노트","u":"https://aurothy.com/notes/1185","d":"조건 대조 3단계, 함정 5유형"}]},{"name":"네이버 블로그 (합격 후기·단어 암기)","cls":"naver","note":"실제 응시자 후기에서 반복되는 방법만 추렸습니다.","items":[{"t":"기출 1회를 4일에 걸쳐 '모르는 단어 전부' 정리","d":"기출을 그냥 풀고 → 모르는 단어를 죄다 찾고 → 단어장 앱에 넣기. JLPT는 문제은행식이라 회차를 넘어 단어가 반복되므로, 두 번째 기출부터 모르는 단어가 확 줄어듭니다.","meta":"네이버 블로그 '양빵' 3주 독학 후기 (2023)"},{"t":"한자 읽기는 장음·탁음·촉음 함정","d":"継続(けいぞく, そ 아님), 軽傷(けいしょう), 勢い(훈독 いきおい), 扱う, 粗い — 뜻을 알아도 읽기를 틀리면 '모르는 단어'로 취급해 다시 외우기.","meta":"해커스 일본어 공식 블로그 (2021)"},{"t":"손으로 쓰는 단어장 + 앱 병행","d":"A4를 접어 한자/읽기·뜻을 가리는 수제 단어장, 이동 시간에는 회독JLPT·암기고래 같은 앱. '눈으로 아는 단어'를 '귀로 들리는 단어'로 바꾸는 것이 청해에도 직결.","meta":"네이버 블로그 독학 후기 (2018)"},{"t":"모의고사는 반드시 시간 재고","d":"실전에서는 OMR 마킹까지 해야 해서 시간이 늘 모자랍니다. 적어도 시험 2~3주 전부터는 타이머를 두고 1회분을 통으로 풀어 보세요.","meta":"네이버 블로그 후기 공통"}],"links":[{"t":"JLPT N2 필수 단어 정리 (해커스)","u":"https://m.blog.naver.com/hackersjapan/222292681425","d":"한자 읽기 출제 포인트와 예문"},{"t":"3주 독학 합격 후기 (기출 회독법)","u":"https://m.blog.naver.com/yxngbbxng/223148138311","d":"기출 1회 4일 루틴"},{"t":"독학 공부방법·유튜브·앱 정리","u":"https://m.blog.naver.com/yhj8376/221356409906","d":"한자 2주 완성 강의, 청해 앱"}]},{"name":"유튜브 (무료 강의)","cls":"yt","note":"블로그 후기에서 실제로 도움받았다고 언급된 강의 중심.","items":[{"t":"N2 한자 2주 완성 (nihongonomori)","d":"40분 × 14강. 비슷하게 생긴 한자의 차이와 쓰임을 그림처럼 설명해 '한자 표기' 파트에 특히 도움이 됐다는 후기.","meta":"유튜브 링크는 아래 참조"},{"t":"N2 문법 1시간 정리 (nihongonomori)","d":"문법을 외우기보다 '쓰임새'로 이해시키는 압축 강의. 이해가 안 되는 문형만 골라 다시 보기 좋습니다.","meta":"유튜브 링크는 아래 참조"},{"t":"유하다요 N2 모의고사 해설","d":"문자·어휘, 문법, 독해 10~14번, 청해 1~5번을 파트별로 해설. 청해 유형별 요령을 잡기에 좋습니다.","meta":"yuhadayo.com"},{"t":"매일 짧게 듣기","d":"NHK News Web Easy(쉬운 뉴스)나 '1분 일본어' 앱으로 하루 5~10분. 청해는 몰아서가 아니라 매일이 효과적.","meta":"NHK · 앱"}],"links":[{"t":"N2 한자 2주 완성 강의","u":"https://youtu.be/iGUpjlZrR78","d":"nihongonomori (블로그에서 소개된 링크)"},{"t":"N2 문법 한시간에 끝내기","u":"https://youtu.be/nhP_VZtAuro","d":"nihongonomori (블로그에서 소개된 링크)"},{"t":"유하다요 JLPT N2","u":"https://yuhadayo.com/categories/course-detail/N2_mogitest2","d":"모의고사 파트별 해설"},{"t":"NHK News Web Easy","u":"https://www3.nhk.or.jp/news/easy/","d":"후리가나 붙은 쉬운 뉴스 — 매일 듣기용"}]},{"name":"X (Twitter) — 실제 게시물","cls":"x","note":"한국어 N2 팁 게시물은 많지 않았고, 검색 결과 상당수가 일본어 교사·무관 게시물이었습니다. 아래는 실제로 확인한 게시물만 정리했습니다.","items":[{"t":"과락 방어 + 강한 파트 몰빵","d":"'JLPT는 한 과목만 과락 나도 떨어지는 시험이라 다 잘하려다 다 망함. 약한 파트는 과락만 면할 만큼 깔고, 승부 볼 파트에 시간을 몰빵.' 문법은 예문을 문장째로 외우고(戦争にともなう多大な犠牲), 독해는 모르는 문장을 전부 적어 단어·뜻을 붙이기. 시험 기간엔 J-POP·일드로 귀 열기.","meta":"@laterinfo_ · 2026-08-04 · x.com/laterinfo_/status/2084610803718660132"},{"t":"7단계 루틴: 단어 10개씩, 문제 먼저, 시간 재기","d":"① 단어는 10개씩 나눠 쓰면서 외우고 이전 10개를 계속 복습 ② 문법은 뜻·형태·주의점을 함께 ③ 독해는 지문보다 문제를 먼저 ④ 청해는 선택지 빠르게 훑고 핵심(이유·누가·무엇)만 ⑤ 파트별 시간 재기 — '문제 하나에 1~2분' 감각.","meta":"@allabout_KieCYJ · 2026-06-26 · x.com/allabout_KieCYJ/status/2070355118956945650"},{"t":"시험 시작 시각 변경·전자기기 규정 강화","d":"직전 회차에서 시차를 이용한 답안 공유가 적발되어 시험 시작 시간이 바뀌고 휴대전화 관리가 대폭 강화되었습니다. 수험표의 시각과 현장 규정을 그대로 따르세요.","meta":"@HANBINIZM · 2025-03-29 · x.com/HANBINIZM/status/1905837706929918076"},{"t":"현직 일본어 교사의 관점","d":"비한자권 학습자에게 가장 큰 벽은 독해. N2 대비 독해 텍스트는 어휘도 어려워 수업만으로는 부족하니, 남은 기간에 매일 조금씩 읽는 습관이 필요하다는 지적.","meta":"@shiori_edu · 2026-10-13 · x.com/shiori_edu/status/2109899073377738782"}],"links":[{"t":"@laterinfo_ 원문","u":"https://x.com/laterinfo_/status/2084610803718660132","d":"N1·N2 독학 합격법 스레드"},{"t":"@allabout_KieCYJ 원문","u":"https://x.com/allabout_KieCYJ/status/2070355118956945650","d":"시험 준비 7단계 조언"},{"t":"@HANBINIZM 원문","u":"https://x.com/HANBINIZM/status/1905837706929918076","d":"시험 시간·전자기기 규정 변경"},{"t":"@shiori_edu 원문","u":"https://x.com/shiori_edu/status/2109899073377738782","d":"일본어 교사의 독해 고민"}]}],"free":[{"t":"JLPT 공식 샘플문제 (레벨별 1회분)","u":"https://www.jlpt.jp/e/samples/forlearners.html","d":"공식 사이트 · 청해 음성 포함. 시험 전 한 번은 시간 재고 풀어보기"},{"t":"PassJapanese — N2 기출 형식 테스트","u":"https://passjapanese.com/ko/exam","d":"가입 없이 무료 · 제출 즉시 채점 · 한국어 해설"},{"t":"RIKEE — N2 모의고사 (온라인)","u":"https://rikee.jp/ko/exams/n2/","d":"105분 제한 · 청해 1회 재생 · 점수와 해설"},{"t":"JP Notes — N2 청해 연습 (스크립트 포함)","u":"https://jpnotes.dev/n2-listening/","d":"유형별 원어민 속도 음성 + 후리가나 대본 + 오답 이유"},{"t":"가나집사 — N2 예문 790개","u":"https://ganabutler.info/sentences/jlpt/n2","d":"단어·문법이 연결된 예문, 음성·형태소 분해"},{"t":"PassJapanese — N2 문법 200개 일람","u":"https://passjapanese.com/ja/grammar/n2","d":"문형별 뜻·예문·구별 포인트 (일본어)"},{"t":"NHK News Web Easy","u":"https://www3.nhk.or.jp/news/easy/","d":"매일 5분 청해·독해 겸용"},{"t":"JLPT 공식 (시험 안내·수험표)","u":"https://www.jlpt.jp/","d":"시험일·시간표·수험표 확인"}],"caveat":"인스타그램은 로그인 장벽·비공개 계정이 많아 직접 수집하지 않았습니다. X는 한국어 N2 자료가 적어 게시물 4건만 반영했고, 나머지는 공개 웹·블로그·유튜브 요약입니다. 링크는 2026-11-18 확인 기준이며, 시험 시각·수험표는 접수한 실시위원회 공지를 최종 기준으로 하세요."}};</script>
+<script>
+(function () {
+  'use strict';
+  var DATA = window.__DATA__;
+  var VOCAB = DATA.vocab.vocab;
+  var GRAM = DATA.grammar.grammar;
+  var QUIZ = DATA.quiz.quiz;
+  var STR = DATA.reading.strategy;
+  var PASS = DATA.reading.passages;
+  var LST = DATA.listening.listening;
+  var TIPS = DATA.tips;
+
+  var KEY = 'jlptn2.state.v1';
+  var EXAM = new Date(2026, 11, 6, 9, 40, 0);
+
+  /* ---------- state ---------- */
+  var S = { v: {}, g: {}, r: {}, l: {}, chk: {}, quizBest: 0, quizOk: {}, quizWrong: [], rate: 1, roles: true };
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var o = JSON.parse(raw);
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) S[k] = o[k];
+    }
+  } catch (e) { }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+    paintHeader();
+  }
+
+  /* ---------- utils ---------- */
+  function $(id) { return document.getElementById(id); }
+  function on(el, ev, fn) { if (el) el.addEventListener(ev, fn); }
+  function keys(o) { return Object.keys(o || {}); }
+  function cnt(o) { return keys(o).length; }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg; t.className = 'toast show';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.className = 'toast'; }, 1800);
+  }
+  function keepScroll(fn) {
+    var y = window.scrollY || window.pageYOffset || 0;
+    fn();
+    window.scrollTo(0, y);
+  }
+  function daysLeft() {
+    var n = new Date(), t0 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    return Math.round((EXAM - t0) / 86400000);
+  }
+  function dstr(d) {
+    return (d.getMonth() + 1) + '/' + d.getDate();
+  }
+  function examMinus(n) {
+    var d = new Date(EXAM); d.setDate(d.getDate() - n);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  /* ---------- speech ---------- */
+  var synth = window.speechSynthesis;
+  function pickVoice() {
+    if (!synth) return null;
+    var vs = synth.getVoices() || [];
+    for (var i = 0; i < vs.length; i++) if (/^ja[-_]JP/i.test(vs[i].lang)) return vs[i];
+    for (var j = 0; j < vs.length; j++) if (/^ja/i.test(vs[j].lang)) return vs[j];
+    return null;
+  }
+  if (synth) { synth.onvoiceschanged = function () { }; }
+  function speak(text, pitch) {
+    if (!synth) { toast('이 브라우저에서는 음성을 지원하지 않아요'); return; }
+    try { synth.cancel(); } catch (e) { }
+    var u = new SpeechSynthesisUtterance(String(text));
+    u.lang = 'ja-JP';
+    var v = pickVoice(); if (v) u.voice = v;
+    u.rate = Number(S.rate) || 1;
+    u.pitch = pitch || 1;
+    synth.speak(u);
+  }
+  function speakLines(lines) {
+    if (!synth) { toast('이 브라우저에서는 음성을 지원하지 않아요'); return; }
+    try { synth.cancel(); } catch (e) { }
+    var v = pickVoice();
+    lines.forEach(function (l) {
+      var u = new SpeechSynthesisUtterance(String(l.t));
+      u.lang = 'ja-JP'; if (v) u.voice = v;
+      u.rate = Number(S.rate) || 1;
+      u.pitch = S.roles ? (l.s === '男' ? 0.78 : (l.s === '女' ? 1.2 : 1)) : 1;
+      synth.speak(u);
+    });
+  }
+  function stopSpeak() { if (synth) { try { synth.cancel(); } catch (e) { } } }
+
+  /* ---------- progress ---------- */
+  var TOTAL = {
+    v: VOCAB.length, g: GRAM.length, r: PASS.reduce(function (a, p) { return a + p.questions.length; }, 0),
+    l: LST.items.length, q: QUIZ.length
+  };
+  function stat() {
+    var r = 0, l = 0;
+    PASS.forEach(function (p) { p.questions.forEach(function (q, qi) { if (typeof S['ans_p' + p.id + 'q' + qi] === 'number') r++; }); });
+    LST.items.forEach(function (it) { if (typeof S['ans_l' + it.id] === 'number') l++; });
+    return {
+      v: cnt(S.v), g: cnt(S.g), r: r, l: l, q: Math.min(cnt(S.quizOk), TOTAL.q)
+    };
+  }
+  function overall() {
+    var s = stat(), t = TOTAL.v + TOTAL.g + TOTAL.r + TOTAL.l + TOTAL.q;
+    var done = s.v + s.g + s.r + s.l + s.q;
+    return Math.round(done / t * 100);
+  }
+
+  /* ---------- header ---------- */
+  function paintHeader() {
+    var d = daysLeft();
+    $('dnum').textContent = d > 0 ? 'D-' + d : (d === 0 ? 'D-DAY' : 'D+' + (-d));
+    $('dsub').textContent = d > 0 ? 'N2 시험까지' : (d === 0 ? '오늘 시험!' : '시험일이 지났어요');
+    var p = overall();
+    $('hpct').textContent = p + '%';
+    $('hbar').style.width = Math.max(p, 2) + '%';
+  }
+
+  /* ---------- tabs ---------- */
+  var TABS = [
+    ['home', '🏠', '홈'], ['vocab', '🃏', '단어'], ['grammar', '📘', '문법'],
+    ['quiz', '✍️', '퀴즈'], ['reading', '📖', '독해'], ['listening', '🎧', '청해'], ['tips', '💡', '팁']
+  ];
+  var rendered = {};
+  function go(id) {
+    stopSpeak();
+    TABS.forEach(function (t) {
+      $('tab-' + t[0]).classList.toggle('on', t[0] === id);
+      $('nb-' + t[0]).classList.toggle('on', t[0] === id);
+    });
+    if (id === 'home') renderHome();
+    if (id === 'vocab') renderVocab();
+    if (id === 'grammar') renderGrammar();
+    if (id === 'quiz') renderQuiz();
+    if (id === 'reading') renderReading();
+    if (id === 'listening') renderListening();
+    if (id === 'tips') renderTips();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- HOME ---------- */
+  function renderHome() {
+    var d = daysLeft(), s = stat();
+    var hero = d > 0
+      ? '<div class="big">D-' + d + '</div><div class="sub">2026년 12월 6일 (일) · JLPT N2 오전 시험</div>'
+      : (d === 0 ? '<div class="big">D-DAY</div><div class="sub">오늘입니다. 준비물을 확인하세요.</div>'
+        : '<div class="big">D+' + (-d) + '</div><div class="sub">2026년 12월 6일 시험이 끝났습니다.</div>');
+    var phases = [
+      { a: 18, b: 15, t: '어휘·문법 기반 쌓기', d: '단어 1일 30개 + 문법 20개 · 모르는 것만 오답노트' },
+      { a: 14, b: 8, t: '기출 1회차 + 독해 유형', d: '시간 재고 풀기 · 유형별 지문 1개씩' },
+      { a: 7, b: 3, t: '청해·정보검색 집중', d: '딕테이션 15분 + 쉐도잉 15분 매일' },
+      { a: 2, b: 1, t: '새 자료 금지', d: '오답노트·문법 카드만 · 시험장·준비물 확인' }
+    ];
+    var ph = phases.map(function (p) {
+      var live = d <= p.a && d >= p.b;
+      return '<li' + (live ? ' style="background:var(--accent-soft);border-radius:10px;padding-left:8px"' : '') + '>'
+        + '<span class="d">' + dstr(examMinus(p.a)) + '~' + dstr(examMinus(p.b)) + '</span>'
+        + '<span><b>' + p.t + (live ? ' · 지금' : '') + '</b><br><span class="muted">' + p.d + '</span></span></li>';
+    }).join('');
+
+    var boxes = [
+      ['어휘·한자', s.v, TOTAL.v, 'vocab'],
+      ['문법', s.g, TOTAL.g, 'grammar'],
+      ['퀴즈 정답', s.q, TOTAL.q, 'quiz'],
+      ['독해·청해', s.r + s.l, TOTAL.r + TOTAL.l, 'listening']
+    ].map(function (b) {
+      var p = Math.round(b[1] / b[2] * 100);
+      return '<button class="pbox" data-go="' + b[3] + '" style="text-align:left">'
+        + '<div class="t">' + b[0] + '</div><div class="n">' + b[1] + '<span class="muted small"> / ' + b[2] + '</span></div>'
+        + '<div class="bar" style="margin-top:8px"><i style="width:' + p + '%"></i></div></button>';
+    }).join('');
+
+    var chk = [
+      ['수험표 (수험번호 확인)', '수험표'],
+      ['규정 신분증 (실물 권장)', '신분증'],
+      ['HB 연필 또는 샤프 · 지우개', '필기구'],
+      ['아날로그 손목시계', '시계'],
+      ['휴대전화·스마트워치 전원 끄기', '전자기기'],
+      ['물 · 겉옷 (대기 시간 대비)', '물']
+    ].map(function (c, i) {
+      var done = S.chk[i];
+      return '<button class="tipitem" data-chk="' + i + '" style="display:flex;gap:10px;align-items:center;width:100%;background:none;border:0;border-bottom:1px dashed var(--line);text-align:left">'
+        + '<span style="font-size:18px">' + (done ? '✅' : '⬜️') + '</span><span' + (done ? ' style="color:var(--sub);text-decoration:line-through"' : '') + '>' + c[0] + '</span></button>';
+    }).join('');
+
+    $('tab-home').innerHTML =
+      '<div class="card hero">' + hero
+      + '<div class="mini"><span>입실 완료 09:40</span><span>언어지식·독해 105분</span><span>청해 약 50분</span></div></div>'
+      + '<h3>영역별 진도</h3><div class="pgrid">' + boxes + '</div>'
+      + '<h3>남은 기간 플랜</h3><div class="card tight"><ul class="plan">' + ph + '</ul></div>'
+      + '<h3>바로 이어서</h3><div class="quick">'
+      + '<button data-go="vocab"><b>🃏</b>어휘 이어보기</button>'
+      + '<button data-go="quiz" data-mode="wrong"><b>🔁</b>오답만 풀기</button>'
+      + '<button data-go="listening"><b>🎧</b>청해 1문항</button>'
+      + '</div>'
+      + '<h3>시험 정보 (한국 기준)</h3><div class="card tight">'
+      + kv('시험일', '2026-12-06 (일) · N1·N2 오전')
+      + kv('입실 완료', '09:40 (이후 출입구 봉쇄)')
+      + kv('1교시', '언어지식(문자·어휘·문법)·독해 105분')
+      + kv('2교시', '청해 약 50분 (녹음 길이에 따라 변동)')
+      + kv('합격', '180점 중 90점 + 각 구분 19점 이상 (과락 주의)')
+      + '<div class="note" style="margin-top:10px">입실 시각·시험장은 접수한 실시위원회(서울/부산/제주) 수험표로 최종 확인하세요. 일본 내 응시는 시작 시각이 다릅니다(9:10).</div>'
+      + '</div>'
+      + '<h3>시험 당일 체크리스트</h3><div class="card tight" style="padding:6px 14px">' + chk + '</div>'
+      + '<p class="muted small" style="margin-top:14px">진도는 이 브라우저에만 저장됩니다(localStorage). 앱을 지우거나 시크릿 모드로 열면 초기화됩니다.</p>';
+
+    bindGo($('tab-home'));
+  }
+  function kv(k, v) { return '<div class="kv"><b>' + k + '</b><span>' + v + '</span></div>'; }
+  function bindGo(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('[data-go]'), function (b) {
+      b.addEventListener('click', function () {
+        if (b.getAttribute('data-mode') === 'wrong') startQuiz(S.quizWrong && S.quizWrong.length ? S.quizWrong.slice() : null);
+        go(b.getAttribute('data-go'));
+      });
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-chk]'), function (b) {
+      b.addEventListener('click', function () {
+        var i = b.getAttribute('data-chk');
+        if (S.chk[i]) delete S.chk[i]; else S.chk[i] = 1;
+        save(); renderHome();
+      });
+    });
+  }
+
+  /* ---------- VOCAB ---------- */
+  var vFilter = 'all', vIdx = 0, vFlipped = false;
+  var VCATS = ['명사', '동사', '형용사', '부사', '한자·단어형성'];
+  function vList() {
+    return VOCAB.filter(function (x) {
+      if (vFilter === 'all') return true;
+      if (vFilter === 'review') return !S.v[x.i];
+      if (vFilter === 'done') return !!S.v[x.i];
+      return x.c === vFilter;
+    });
+  }
+  function markVocab(id, memorized, advance) {
+    if (memorized) S.v[id] = 1; else delete S.v[id];
+    save(); vFlipped = false;
+    var list = vList();
+    if (advance && list.length > 1 && list[vIdx] && list[vIdx].i === id) vIdx = (vIdx + 1) % list.length;
+    if (vIdx > list.length - 1) vIdx = Math.max(0, list.length - 1);
+    keepScroll(renderVocab);
+  }
+  function renderVocab() {
+    var list = vList();
+    if (vIdx >= list.length) vIdx = Math.max(0, list.length - 1);
+    if (vIdx < 0) vIdx = 0;
+    var chips = [['all', '전체'], ['review', '다시 보기'], ['done', '암기 완료']]
+      .concat(VCATS.map(function (c) { return [c, c]; }))
+      .map(function (c) {
+        return '<button class="chip' + (vFilter === c[0] ? ' on' : '') + '" data-f="' + esc(c[0]) + '">' + c[1] + '</button>';
+      }).join('');
+
+    var head = '<h2>어휘·한자 플래시카드</h2><p class="lead">' + VOCAB.length + '개 · 카드를 탭해 뒤집고, 좌우로 밀어 넘기세요.</p>'
+      + '<div class="chips">' + chips + '</div>';
+
+    if (!list.length) {
+      $('tab-vocab').innerHTML = head + '<div class="card" style="text-align:center;padding:34px 16px">'
+        + '<div style="font-size:34px">🎉</div><p class="muted">이 필터에 남은 카드가 없어요.</p></div>';
+      bindVFilters(); return;
+    }
+    var x = list[vIdx];
+    var done = !!S.v[x.i];
+    var pct = Math.round(vIdx / list.length * 100);
+
+    $('tab-vocab').innerHTML = head
+      + '<div class="fcount"><span>' + (vIdx + 1) + ' / ' + list.length + '</span><span class="small">' + (done ? '암기 완료 ✓' : '아직 안 외움') + '</span></div>'
+      + '<div class="bar" style="margin:0 0 12px"><i style="width:' + pct + '%"></i></div>'
+      + '<div class="fcstage"><div class="fcard' + (vFlipped ? ' flipped' : '') + '" id="fcard">'
+      + '<div class="face front"><span class="tag">' + esc(x.c) + '</span>'
+      + '<div class="word jp">' + esc(x.w) + '</div><div class="read jp">' + esc(x.k) + '</div>'
+      + '<div class="mean">' + esc(x.m) + '</div>'
+      + '<div class="hint">탭하면 뜻·예문이 보여요</div></div>'
+      + '<div class="face back"><span class="tag">' + esc(x.c) + '</span>'
+      + '<div class="word jp" style="font-size:30px;margin-bottom:2px">' + esc(x.w) + '</div>'
+      + '<div class="read jp">' + esc(x.k) + '</div>'
+      + '<div class="ex jp">' + esc(x.ex) + '</div>'
+      + '<div class="exk">' + esc(x.exk) + '</div>'
+      + '<div class="mean" style="margin-top:14px">' + esc(x.m) + '</div>'
+      + '<div class="row" style="margin-top:10px"><button class="btn ghost small" data-sayex="1">🔊 예문 듣기</button></div>'
+      + '</div></div></div>'
+      + '<div class="fnav3" style="margin-bottom:8px">'
+      + '<button class="btn" id="vprev">◀</button>'
+      + '<button class="btn" id="vsay">🔊 발음 듣기</button>'
+      + '<button class="btn" id="vnext">▶</button></div>'
+      + '<div class="fnav"><button class="btn bad" id="vrev">다시 보기</button><button class="btn ok" id="vok">암기 완료 ✓</button></div>';
+
+    var card = $('fcard'), justSwiped = false;
+    on(card, 'click', function (e) {
+      if (justSwiped) { justSwiped = false; return; }
+      if (e.target.closest('[data-sayex]')) { speak(x.ex); return; }
+      vFlipped = !vFlipped; card.classList.toggle('flipped', vFlipped);
+    });
+    on($('vsay'), 'click', function () { speak(x.w); });
+    on($('vprev'), 'click', function () { vIdx = (vIdx - 1 + list.length) % list.length; vFlipped = false; renderVocab(); });
+    on($('vnext'), 'click', function () { vIdx = (vIdx + 1) % list.length; vFlipped = false; renderVocab(); });
+    on($('vok'), 'click', function () { markVocab(x.i, true, true); toast('암기 완료로 표시했어요'); });
+    on($('vrev'), 'click', function () { markVocab(x.i, false, true); });
+
+    var sx = 0, sy = 0, moved = false;
+    on(card, 'touchstart', function (e) {
+      var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false;
+      card.style.transition = 'none';
+    }, { passive: true });
+    on(card, 'touchmove', function (e) {
+      var t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+        moved = true;
+        card.style.transform = 'translateX(' + dx * .55 + 'px) rotate(' + (dx * .01) + 'deg)';
+      }
+    }, { passive: true });
+    on(card, 'touchend', function (e) {
+      card.style.transition = ''; card.style.transform = '';
+      if (!moved) return;
+      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
+      justSwiped = true;
+      var right = dx > 0;
+      markVocab(x.i, right, false);
+      toast(right ? '암기 완료 ✓' : '다시 보기로 넘겼어요');
+      vFlipped = false;
+      var nl = vList().length;
+      vIdx = nl ? Math.min(vIdx + 1, nl - 1) : 0;
+      renderVocab();
+      setTimeout(function () { justSwiped = false; }, 400);
+    });
+
+    bindVFilters();
+  }
+  function bindVFilters() {
+    Array.prototype.forEach.call($('tab-vocab').querySelectorAll('[data-f]'), function (b) {
+      b.addEventListener('click', function () {
+        vFilter = b.getAttribute('data-f'); vIdx = 0; vFlipped = false; renderVocab();
+      });
+    });
+  }
+
+  /* ---------- GRAMMAR ---------- */
+  var gQuery = '', gCat = '전체';
+  function gCats() {
+    var out = ['전체'], seen = {};
+    GRAM.forEach(function (g) { if (!seen[g.c]) { seen[g.c] = 1; out.push(g.c); } });
+    return out;
+  }
+  function gList() {
+    var q = gQuery.trim().toLowerCase();
+    return GRAM.filter(function (g) {
+      if (gCat !== '전체' && g.c !== gCat) return false;
+      if (!q) return true;
+      var hay = [g.t, g.m, g.conn, g.ex, g.exk, g.tip, g.c].join(' ').toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+  }
+  function toggleGrammarDone(id) {
+    if (S.g[id]) delete S.g[id]; else S.g[id] = 1;
+    save(); renderGrammar();
+  }
+  function renderGrammar() {
+    var list = gList();
+    var chips = gCats().map(function (c) {
+      return '<button class="chip' + (gCat === c ? ' on' : '') + '" data-gc="' + esc(c) + '">' + c + '</button>';
+    }).join('');
+    var cards = list.map(function (g) {
+      var done = !!S.g[g.i];
+      return '<div class="card gcard' + (done ? ' done' : '') + '" data-g="' + g.i + '">'
+        + '<div class="ghead"><div><div class="gt jp">' + esc(g.t) + '</div><div class="gm">' + esc(g.m) + '</div></div>'
+        + '<div class="gbtn"><button class="btn ghost" data-gsay="' + g.i + '" style="padding:8px 10px">🔊</button>'
+        + '<button class="btn ghost" data-gdone="' + g.i + '" style="padding:8px 10px">' + (done ? '✓' : '○') + '</button></div></div>'
+        + '<div class="gbody hide">'
+        + '<div class="lab">접속</div><div class="val jp">' + esc(g.conn) + '</div>'
+        + '<div class="lab">예문</div><div class="ex jp">' + esc(g.ex) + '</div><div class="exk">' + esc(g.exk) + '</div>'
+        + '<div class="tip">💡 ' + esc(g.tip) + '</div>'
+        + '</div></div>';
+    }).join('');
+
+    $('tab-grammar').innerHTML = '<h2>핵심 문법</h2><p class="lead">' + GRAM.length + '개 · 접속·뉘앙스·유사 문법 구별까지. 카드를 눌러 펼치세요.</p>'
+      + '<input class="srch" id="gsrch" type="search" placeholder="문법·뜻·예문 검색 (예: ばかり, 역접)" value="' + esc(gQuery) + '">'
+      + '<div class="chips" style="margin-top:10px">' + chips + '</div>'
+      + '<div class="muted small" style="margin-bottom:8px">' + list.length + '개 표시 · 암기 완료 ' + cnt(S.g) + ' / ' + GRAM.length + '</div>'
+      + (list.length ? cards : '<div class="card" style="text-align:center;padding:30px">검색 결과가 없어요.</div>');
+
+    on($('gsrch'), 'input', function (e) { gQuery = e.target.value; var p = e.target.selectionStart; renderGrammar(); var n = $('gsrch'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (er) { } } });
+    Array.prototype.forEach.call($('tab-grammar').querySelectorAll('[data-gc]'), function (b) {
+      b.addEventListener('click', function () { gCat = b.getAttribute('data-gc'); renderGrammar(); });
+    });
+    Array.prototype.forEach.call($('tab-grammar').querySelectorAll('[data-gsay]'), function (b) {
+      b.addEventListener('click', function (e) { e.stopPropagation(); var g = byId(GRAM, b.getAttribute('data-gsay')); speak(g.ex); });
+    });
+    Array.prototype.forEach.call($('tab-grammar').querySelectorAll('[data-gdone]'), function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleGrammarDone(b.getAttribute('data-gdone'));
+      });
+    });
+    Array.prototype.forEach.call($('tab-grammar').querySelectorAll('.gcard'), function (c) {
+      c.addEventListener('click', function () { c.querySelector('.gbody').classList.toggle('hide'); });
+    });
+  }
+  function byId(arr, id) { for (var i = 0; i < arr.length; i++) if (String(arr[i].i) === String(id)) return arr[i]; return null; }
+
+  /* ---------- QUIZ ---------- */
+  var QZ = { order: [], idx: 0, answered: false, correct: 0, wrong: [], done: false };
+  function startQuiz(ids) {
+    var list = ids && ids.length ? ids.slice() : QUIZ.map(function (q) { return q.i; });
+    QZ = { order: list, idx: 0, answered: false, correct: 0, wrong: [], done: false };
+  }
+  function answerQuiz(i) {
+    if (QZ.done || QZ.answered) return;
+    var q = byId(QUIZ, QZ.order[QZ.idx]);
+    QZ.answered = true; QZ.picked = i;
+    if (i === q.a) { QZ.correct++; S.quizOk[q.i] = 1; save(); }
+    else { QZ.wrong.push(q.i); }
+    keepScroll(renderQuiz);
+  }
+  function nextQuiz() {
+    if (!QZ.answered) return;
+    if (QZ.idx + 1 < QZ.order.length) {
+      QZ.idx++; QZ.answered = false; QZ.picked = null; renderQuiz();
+      return;
+    }
+    QZ.done = true;
+    if (QZ.order.length === QUIZ.length && QZ.correct > (Number(S.quizBest) || 0)) S.quizBest = QZ.correct;
+    S.quizWrong = QZ.wrong.slice();
+    save(); renderQuiz();
+  }
+  function renderQuiz() {
+    if (!QZ.order.length) startQuiz(null);
+    if (QZ.done) {
+      var totalQ = QZ.order.length;
+      $('tab-quiz').innerHTML = '<h2>실전 퀴즈</h2>'
+        + '<div class="card" style="text-align:center">'
+        + '<div class="muted">결과</div>'
+        + '<div class="bigscore">' + QZ.correct + ' / ' + totalQ + '</div>'
+        + '<div class="muted small">정답률 ' + Math.round(QZ.correct / totalQ * 100) + '%</div>'
+        + '<div class="hr"></div>'
+        + '<div class="row" style="justify-content:center;flex-wrap:wrap">'
+        + (QZ.wrong.length ? '<button class="btn pri" id="qagain">틀린 ' + QZ.wrong.length + '문제만 다시 풀기</button>' : '')
+        + '<button class="btn" id="qrestart">전체 다시 풀기</button>'
+        + '</div></div>'
+        + (QZ.wrong.length ? '<p class="muted small">틀린 문제 번호: ' + QZ.wrong.join(', ') + '</p>' : '<p class="muted small">전부 맞혔어요. 최고 기록이 저장됩니다.</p>');
+      on($('qagain'), 'click', function () { startQuiz(QZ.wrong); renderQuiz(); });
+      on($('qrestart'), 'click', function () { startQuiz(null); renderQuiz(); });
+      return;
+    }
+    var q = byId(QUIZ, QZ.order[QZ.idx]);
+    var opts = q.opts.map(function (o, i) {
+      var cls = 'opt';
+      if (QZ.answered) {
+        if (i === q.a) cls += ' correct';
+        else if (QZ.picked === i) cls += ' wrong';
+      }
+      return '<button class="' + cls + '" data-o="' + i + '"' + (QZ.answered ? ' disabled' : '') + '>'
+        + '<span class="no">' + (i + 1) + '</span><span class="jp">' + esc(o) + '</span></button>';
+    }).join('');
+
+    $('tab-quiz').innerHTML = '<h2>실전 퀴즈</h2><p class="lead">' + QUIZ.length + '문항 · 어휘·한자·문법 4지선다. 즉시 해설이 나옵니다.</p>'
+      + '<div class="qmeta"><span>' + (QZ.idx + 1) + ' / ' + QZ.order.length + ' · ' + esc(q.tag) + '</span><span>정답 ' + QZ.correct + '</span></div>'
+      + '<div class="bar" style="margin-bottom:14px"><i style="width:' + Math.round(QZ.idx / QZ.order.length * 100) + '%"></i></div>'
+      + '<div class="card">'
+      + '<div class="qwrap jp">' + esc(q.q).replace(/_{3,}/g, '<span class="qblank">（　）</span>') + '</div>'
+      + opts
+      + (QZ.answered ? '<div class="verdict ' + (QZ.picked === q.a ? 'ok' : 'ng') + '">'
+        + (QZ.picked === q.a ? '⭕️ 정답!' : '❌ 오답 — 정답은 ' + (q.a + 1) + '번') + '</div>'
+        + '<div class="exp">' + esc(q.exp) + '</div>'
+        + '<button class="btn pri" id="qnext" style="width:100%;margin-top:12px">'
+        + (QZ.idx + 1 < QZ.order.length ? '다음 문제 →' : '결과 보기') + '</button>'
+        : '<p class="muted small" style="margin:6px 0 0">정답을 고르면 해설이 나와요.</p>')
+      + '</div>';
+
+    Array.prototype.forEach.call($('tab-quiz').querySelectorAll('[data-o]'), function (b) {
+      b.addEventListener('click', function () { answerQuiz(Number(b.getAttribute('data-o'))); });
+    });
+    if (QZ.answered) {
+      on($('qnext'), 'click', nextQuiz);
+    }
+  }
+
+  /* ---------- READING ---------- */
+  function answerReading(key, i) {
+    if (typeof S['ans_' + key] === 'number') return;
+    S['ans_' + key] = i;
+    var p = PASS.filter(function (x) { return key.indexOf('p' + x.id + 'q') === 0; })[0];
+    if (p) {
+      var all = p.questions.every(function (q, qi) { return typeof S['ans_p' + p.id + 'q' + qi] === 'number'; });
+      if (all) S.r[p.id] = 1;
+    }
+    save(); keepScroll(renderReading);
+  }
+  function renderReading() {
+    var types = STR.types.map(function (t) {
+      return '<tr><td>' + esc(t.name) + '</td><td class="jp">' + esc(t.jp) + '</td><td>' + esc(t.len) + '<br><span class="muted">' + esc(t.ask) + '</span></td><td>' + esc(t.time) + '</td><td>' + esc(t.how) + '</td></tr>';
+    }).join('');
+    var conn = STR.connectives.map(function (c) {
+      return '<div class="ln"><b class="jp">' + esc(c.w) + '</b><span>' + esc(c.m) + ' · ' + esc(c.role) + '</span></div>';
+    }).join('');
+    var pt = STR.pointers.map(function (c) {
+      return '<div class="ln"><b class="jp">' + esc(c.w) + '</b><span>' + esc(c.m) + '</span></div>';
+    }).join('');
+    var cl = STR.claims.map(function (c) {
+      return '<div class="ln"><b class="jp">' + esc(c.w) + '</b><span>' + esc(c.m) + '</span></div>';
+    }).join('');
+    var bd = STR.bounds.map(function (c) {
+      return '<tr><td class="jp">' + esc(c.w) + '</td><td class="jp">' + esc(c.k) + '</td><td>' + esc(c.m) + '</td></tr>';
+    }).join('');
+    var rules = STR.rules.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join('');
+    var order = STR.order.map(function (o, i) { return '<li>' + esc(o) + '</li>'; }).join('');
+    var info = STR.infoTips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+
+    var passages = PASS.map(function (p) {
+      var answeredAll = S.r[p.id];
+      var qs = p.questions.map(function (q, qi) {
+        var key = 'p' + p.id + 'q' + qi;
+        var picked = S['ans_' + key];
+        var opts = q.opts.map(function (o, i) {
+          var cls = 'opt';
+          if (typeof picked === 'number') {
+            if (i === q.a) cls += ' correct';
+            else if (picked === i) cls += ' wrong';
+          }
+          return '<button class="' + cls + '" data-k="' + key + '" data-q="' + qi + '" data-o="' + i + '"' + (typeof picked === 'number' ? ' disabled' : '') + '>'
+            + '<span class="no">' + (i + 1) + '</span><span class="jp">' + esc(o) + '</span></button>';
+        }).join('');
+        return '<div class="qbox"><div class="qtitle">Q' + (qi + 1) + '. ' + esc(q.q) + '</div>' + opts
+          + (typeof picked === 'number' ? '<div class="verdict ' + (picked === q.a ? 'ok' : 'ng') + '">'
+            + (picked === q.a ? '⭕️ 정답!' : '❌ 오답 — 정답은 ' + (q.a + 1) + '번') + '</div>'
+            + '<div class="exp">' + esc(q.exp) + '</div>' : '')
+          + '</div>';
+      }).join('');
+      return '<div class="card">'
+        + '<div class="tagline"><span>' + esc(p.type) + '</span><span>' + esc(p.len) + '</span>' + (answeredAll ? '<span>완료 ✓</span>' : '') + '</div>'
+        + '<h3 style="margin:0 0 10px">' + esc(p.title) + '</h3>'
+        + '<div class="ptext jp">' + esc(p.text) + '</div>' + qs + '</div>';
+    }).join('');
+
+    $('tab-reading').innerHTML = '<h2>독해 공략</h2><p class="lead">유형별 전략 + 접속사·지시어·필자 주장 패턴 + 실전 지문 4개</p>'
+      + '<div class="card tight"><h3 style="margin-top:0">유형별 시간 배분</h3>'
+      + '<div style="overflow-x:auto"><table class="t"><tr><th>유형</th><th>일본어</th><th>분량·묻는 것</th><th>시간</th><th>요령</th></tr>' + types + '</table></div></div>'
+      + '<div class="card tight"><h3 style="margin-top:0">풀이 순서</h3><ol class="rules">' + order + '</ol>'
+      + '<div class="hr"></div><h3 style="margin-top:0">5가지 원칙</h3><ol class="rules">' + rules + '</ol></div>'
+      + '<div class="card tight"><h3 style="margin-top:0">접속사 = 흐름 신호</h3>' + conn + '</div>'
+      + '<div class="card tight"><h3 style="margin-top:0">지시어 (それ·その)</h3>' + pt + '</div>'
+      + '<div class="card tight"><h3 style="margin-top:0">필자 주장 표현</h3>' + cl + '</div>'
+      + '<div class="card tight"><h3 style="margin-top:0">정보 검색 함정</h3><ol class="rules">' + info + '</ol>'
+      + '<div class="hr"></div><table class="t"><tr><th>표현</th><th>읽기</th><th>뜻</th></tr>' + bd + '</table></div>'
+      + '<h2 style="margin-top:22px">실전 미니 지문</h2><p class="lead">문제를 풀면 정답과 해설이 바로 나옵니다.</p>'
+      + passages;
+
+    Array.prototype.forEach.call($('tab-reading').querySelectorAll('[data-k]'), function (b) {
+      b.addEventListener('click', function () {
+        answerReading(b.getAttribute('data-k'), Number(b.getAttribute('data-o')));
+      });
+    });
+  }
+
+  /* ---------- LISTENING ---------- */
+  function answerListening(id, i) {
+    if (typeof S['ans_l' + id] === 'number') return;
+    S['ans_l' + id] = i;
+    save(); keepScroll(renderListening);
+  }
+  function renderListening() {
+    var types = LST.types.map(function (t) {
+      return '<tr><td>' + esc(t.n) + '<br><span class="muted small jp">' + esc(t.jp) + '</span></td><td>' + esc(t.q) + '</td><td>' + esc(t.ask) + '</td><td>' + esc(t.how) + '</td><td>' + esc(t.trap) + '</td></tr>';
+    }).join('');
+    var con = LST.contractions.map(function (c) {
+      return '<div class="ln"><b class="jp">' + esc(c.a) + ' → ' + esc(c.b) + '</b><span class="jp">' + esc(c.ex) + '</span></div>';
+    }).join('');
+    var conf = LST.confusables.map(function (c) {
+      return '<div class="ln"><b class="jp">' + esc(c.pair) + '</b><span>' + esc(c.m) + ' · ' + esc(c.note) + '</span></div>';
+    }).join('');
+
+    var items = LST.items.map(function (it) {
+      var ans = S['ans_l' + it.id];
+      var opts = it.opts.map(function (o, i) {
+        var cls = 'opt';
+        if (typeof ans === 'number') {
+          if (i === it.a) cls += ' correct';
+          else if (ans === i) cls += ' wrong';
+        }
+        return '<button class="' + cls + '" data-l="' + it.id + '" data-o="' + i + '"' + (typeof ans === 'number' ? ' disabled' : '') + '>'
+          + '<span class="no">' + (i + 1) + '</span><span class="jp">' + esc(o) + '</span></button>';
+      }).join('');
+      var script = it.script.map(function (l) {
+        return '<div class="sp"><b>' + esc(l.s) + '</b><span class="jp">' + esc(l.t) + '</span></div>';
+      }).join('');
+      return '<div class="card" data-lc="' + it.id + '">'
+        + '<div class="tagline"><span>' + esc(it.type) + '</span><span>1회 재생 · 메모하며 듣기</span></div>'
+        + '<h3 style="margin:0 0 4px">' + esc(it.title) + '</h3>'
+        + '<div class="muted jp" style="font-size:13px">' + esc(it.intro) + '</div>'
+        + '<div class="player"><button class="btn pri" data-play="' + it.id + '">▶ 대사 듣기</button>'
+        + '<button class="btn" data-stop="1">■ 정지</button></div>'
+        + '<div class="row" style="justify-content:space-between"><span class="speed">속도</span>'
+        + '<button class="btn ghost small" data-trans="' + it.id + '">대본 보기</button></div>'
+        + '<div class="script jp hide" id="scr-' + it.id + '">' + script + '</div>'
+        + '<div class="hr"></div>'
+        + '<div class="qtitle jp">質問：' + esc(it.question) + '</div>'
+        + opts
+        + (typeof ans === 'number' ? '<div class="verdict ' + (ans === it.a ? 'ok' : 'ng') + '">'
+          + (ans === it.a ? '⭕️ 정답!' : '❌ 오답 — 정답은 ' + (it.a + 1) + '번') + '</div>'
+          + '<div class="exp"><b>포인트: ' + esc(it.key) + '</b><br>' + esc(it.exp) + '</div>' : '')
+        + '</div>';
+    }).join('');
+
+    $('tab-listening').innerHTML = '<h2>청해 공략 · 쉐도잉</h2><p class="lead">N2 청해 5유형 함정 + 구어 축약형 + 미니 연습 ' + LST.items.length + '문항 (일본어 음성 재생)</p>'
+      + '<div class="card tight"><h3 style="margin-top:0">5유형과 함정</h3>'
+      + '<div style="overflow-x:auto"><table class="t"><tr><th>유형</th><th>문항</th><th>묻는 것</th><th>요령</th><th>함정</th></tr>' + types + '</table></div></div>'
+      + '<div class="card tight"><h3 style="margin-top:0">구어 축약형 (모르면 문장이 통째로 안 들림)</h3>' + con + '</div>'
+      + '<div class="card tight"><h3 style="margin-top:0">헷갈리는 소리</h3>' + conf + '</div>'
+      + '<div class="card tight"><div class="row" style="justify-content:space-between">'
+      + '<span class="small"><b>재생 속도</b></span>'
+      + '<span class="wrap"><button class="btn small" data-rate="0.85">0.85x</button>'
+      + '<button class="btn small" data-rate="1">1.0x</button>'
+      + '<button class="btn small" data-rate="1.1">1.1x</button></span></div>'
+      + '<div class="row" style="justify-content:space-between;margin-top:8px"><span class="small"><b>역할별 목소리</b> (남/여 높낮이 구분)</span>'
+      + '<button class="btn small" id="lroles">' + (S.roles ? '켜짐' : '꺼짐') + '</button></div>'
+      + '<p class="muted small" style="margin:10px 0 0">음성이 안 나오면 iPhone 설정 → 손쉬운 사용 → 콘텐츠 말하기 → 음성 → 일본어 음성을 추가하세요. 각 문항은 실제 시험처럼 한 번만 듣고 답해 보세요.</p></div>'
+      + '<h2 style="margin-top:20px">미니 청해 연습</h2>' + items;
+
+    Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-play]'), function (b) {
+      b.addEventListener('click', function () {
+        var it = byId(LST.items, b.getAttribute('data-play'));
+        speakLines(it.script);
+      });
+    });
+    Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-stop]'), function (b) {
+      b.addEventListener('click', function () { stopSpeak(); });
+    });
+    Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-trans]'), function (b) {
+      b.addEventListener('click', function () {
+        var d = $('scr-' + b.getAttribute('data-trans'));
+        d.classList.toggle('hide');
+        b.textContent = d.classList.contains('hide') ? '대본 보기' : '대본 숨기기';
+      });
+    });
+    Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-l]'), function (b) {
+      b.addEventListener('click', function () {
+        answerListening(b.getAttribute('data-l'), Number(b.getAttribute('data-o')));
+      });
+    });
+    Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-rate]'), function (b) {
+      b.addEventListener('click', function () { S.rate = Number(b.getAttribute('data-rate')); save(); toast('속도 ' + S.rate + 'x'); });
+    });
+    on($('lroles'), 'click', function () { S.roles = !S.roles; save(); renderListening(); });
+  }
+
+  /* ---------- TIPS ---------- */
+  function renderTips() {
+    var ex = TIPS.exam;
+    var facts = ex.facts.map(function (f) { return kv(f.k, f.v); }).join('');
+    var srcs = TIPS.sources.map(function (s) {
+      var cls = s.cls || '';
+      var items = s.items.map(function (it) {
+        return '<div class="tipitem"><b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span>'
+          + (it.meta ? '<div class="meta">' + esc(it.meta) + '</div>' : '') + '</div>';
+      }).join('');
+      var links = (s.links || []).map(function (l) {
+        return '<a href="' + esc(l.u) + '" target="_blank" rel="noopener"><b>' + esc(l.t) + '</b><span>' + esc(l.d || l.u) + '</span></a>';
+      }).join('');
+      return '<div class="card src ' + cls + '"><h3 style="margin-top:0">' + esc(s.name) + '</h3>'
+        + '<p class="muted small" style="margin-top:-4px">' + esc(s.note || '') + '</p>'
+        + items + (links ? '<div class="links" style="margin-top:12px">' + links + '</div>' : '') + '</div>';
+    }).join('');
+    var free = TIPS.free.map(function (l) {
+      return '<a href="' + esc(l.u) + '" target="_blank" rel="noopener"><b>' + esc(l.t) + '</b><span>' + esc(l.d) + '</span></a>';
+    }).join('');
+    $('tab-tips').innerHTML = '<h2>출처별 핵심 요약</h2><p class="lead">구글·네이버·유튜브·X에서 추린 실전 팁과 무료 학습 링크</p>'
+      + '<div class="card"><h3 style="margin-top:0">시험 개요</h3>' + facts + '</div>'
+      + srcs
+      + '<h2 style="margin-top:20px">무료 학습 링크</h2><div class="links">' + free + '</div>'
+      + '<div class="note" style="margin-top:14px">' + esc(TIPS.caveat) + '</div>';
+  }
+
+  /* ---------- init ---------- */
+  function init() {
+    var nav = $('tabbar');
+    nav.innerHTML = TABS.map(function (t) {
+      return '<button id="nb-' + t[0] + '" data-t="' + t[0] + '"><i>' + t[1] + '</i>' + t[2] + '</button>';
+    }).join('');
+    Array.prototype.forEach.call(nav.querySelectorAll('button'), function (b) {
+      b.addEventListener('click', function () { go(b.getAttribute('data-t')); });
+    });
+    paintHeader();
+    go('home');
+  }
+  window.__APP__ = {
+    go: go, state: S, stat: stat, total: TOTAL,
+    answerQuiz: answerQuiz, nextQuiz: nextQuiz, startQuiz: startQuiz,
+    answerReading: answerReading, answerListening: answerListening,
+    markVocab: markVocab, toggleGrammarDone: toggleGrammarDone,
+    speak: speak, speakLines: speakLines, quiz: function () { return QZ; }
+  };
+  init();
+})();
+
+</script>
+</body>
+</html>
