@@ -493,6 +493,11 @@ nav.tabbar button.on{color:var(--accent)}
       if (fallback) fallback();
     };
     a.onerror = fail;
+    /* iOS Safari can reset playbackRate set before the stream starts */
+    a.onplaying = function () {
+      var r = Number(S.rate) || 1;
+      try { if (Math.abs((a.playbackRate || 1) - r) > 0.01) a.playbackRate = r; } catch (e) { }
+    };
     a.onended = function () {
       if (done) return; done = true;
       if (curAudio === a) curAudio = null;
