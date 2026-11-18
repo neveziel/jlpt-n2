@@ -531,6 +531,11 @@ nav.tabbar button.on{color:var(--accent)}
     if (!x) return;
     toggleMp3('audio/vx_' + x.i + '.mp3', btn, function () { speak(x.ex); });
   }
+  /* the headword itself (card front '🔊 발음 듣기'), pre-rendered by make_audio.py words */
+  function playVocabWord(btn, x) {
+    if (!x) return;
+    toggleMp3('audio/w_' + x.i + '.mp3', btn, function () { speak(x.w); });
+  }
   function playLine(btn, it, n) {
     var line = it && it.script[n];
     if (!line) return;
@@ -693,6 +698,7 @@ nav.tabbar button.on{color:var(--accent)}
     keepScroll(renderVocab);
   }
   function renderVocab() {
+    stopSound();          // a card change replaces the buttons that own the playing audio
     var list = vList();
     if (vIdx >= list.length) vIdx = Math.max(0, list.length - 1);
     if (vIdx < 0) vIdx = 0;
@@ -732,7 +738,7 @@ nav.tabbar button.on{color:var(--accent)}
       + '</div></div></div>'
       + '<div class="fnav3" style="margin-bottom:8px">'
       + '<button class="btn" id="vprev">◀</button>'
-      + '<button class="btn" id="vsay">🔊 발음 듣기</button>'
+      + '<button class="btn" id="vsay" data-playing="♪ 재생 중">🔊 발음 듣기</button>'
       + '<button class="btn" id="vnext">▶</button></div>'
       + '<div class="fnav"><button class="btn bad" id="vrev">다시 보기</button><button class="btn ok" id="vok">암기 완료 ✓</button></div>';
 
@@ -742,7 +748,8 @@ nav.tabbar button.on{color:var(--accent)}
       if (e.target.closest('[data-sayex]')) { playVocabEx(e.target.closest('[data-sayex]'), x); return; }
       vFlipped = !vFlipped; card.classList.toggle('flipped', vFlipped);
     });
-    on($('vsay'), 'click', function () { speak(x.w); });
+    var vsayBtn = $('vsay');
+    on(vsayBtn, 'click', function () { playVocabWord(vsayBtn, x); });
     on($('vprev'), 'click', function () { vIdx = (vIdx - 1 + list.length) % list.length; vFlipped = false; renderVocab(); });
     on($('vnext'), 'click', function () { vIdx = (vIdx + 1) % list.length; vFlipped = false; renderVocab(); });
     on($('vok'), 'click', function () { markVocab(x.i, true, true); toast('암기 완료로 표시했어요'); });
@@ -1190,6 +1197,7 @@ nav.tabbar button.on{color:var(--accent)}
     markVocab: markVocab, toggleGrammarDone: toggleGrammarDone,
     speak: speak, speakLines: speakLines, quiz: function () { return QZ; },
     listeningItem: lById, playItem: playItem, playGrammar: playGrammar, playVocabEx: playVocabEx,
+    playVocabWord: playVocabWord,
     plain: plain, ruby: ruby, ios: function () { return IOS; },
     setFuri: function (v) { S.furi = !!v; applyFuri(); }
   };
