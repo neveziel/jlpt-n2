@@ -298,7 +298,7 @@ nav.tabbar button.on{color:var(--accent)}
   var EXAM = new Date(2026, 11, 6, 9, 40, 0);
 
   /* ---------- state ---------- */
-  var S = { v: {}, g: {}, r: {}, l: {}, chk: {}, quizBest: 0, quizOk: {}, quizWrong: [], rate: 1, roles: true, furi: true, tr: {} };
+  var S = { v: {}, g: {}, r: {}, l: {}, chk: {}, quizBest: 0, quizOk: {}, quizWrong: [], rate: 1, roles: true, furi: true, tr: {}, ltr: {} };
   try {
     var raw = localStorage.getItem(KEY);
     if (raw) {
@@ -1058,8 +1058,8 @@ nav.tabbar button.on{color:var(--accent)}
         + '<div class="player"><button class="btn pri" data-play="' + it.id + '" aria-label="음성 듣기">▶ 듣기</button>'
         + '<button class="btn" data-stop="1" aria-label="정지">■ 정지</button></div>'
         + '<div class="row" style="justify-content:space-between"><span class="speed">속도</span>'
-        + '<button class="btn ghost small" data-trans="' + it.id + '">대본 보기</button></div>'
-        + '<div class="script jp hide" id="scr-' + it.id + '">' + script + '</div>'
+        + '<button class="btn ghost small" data-trans="' + it.id + '">' + (S.ltr && S.ltr['l' + it.id] ? '대본 숨기기' : '대본 보기') + '</button></div>'
+        + '<div class="script jp' + (S.ltr && S.ltr['l' + it.id] ? '' : ' hide') + '" id="scr-' + it.id + '">' + script + '</div>'
         + '<div class="hr"></div>'
         + '<div class="qtitle jp">質問：' + ruby(it.question) + '</div>'
         + opts
@@ -1101,9 +1101,13 @@ nav.tabbar button.on{color:var(--accent)}
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-trans]'), function (b) {
       b.addEventListener('click', function () {
-        var d = $('scr-' + b.getAttribute('data-trans'));
+        var id = b.getAttribute('data-trans');
+        if (!S.ltr) S.ltr = {};
+        S.ltr['l' + id] = !S.ltr['l' + id];
+        var d = $('scr-' + id);
         d.classList.toggle('hide');
         b.textContent = d.classList.contains('hide') ? '대본 보기' : '대본 숨기기';
+        save();
       });
     });
     Array.prototype.forEach.call($('tab-listening').querySelectorAll('[data-l]'), function (b) {
