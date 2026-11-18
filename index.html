@@ -466,7 +466,7 @@ nav.tabbar button.on{color:var(--accent)}
     if (on) {
       if (!btn.getAttribute('data-lbl')) btn.setAttribute('data-lbl', btn.textContent);
       btn.classList.add('playing');
-      btn.textContent = '♪ 재생 중';
+      btn.textContent = btn.getAttribute('data-playing') || '♪ 재생 중';
     } else {
       btn.classList.remove('playing');
       var l = btn.getAttribute('data-lbl');
@@ -517,6 +517,19 @@ nav.tabbar button.on{color:var(--accent)}
   function playItem(btn, it) {
     if (!it) return;
     playMp3('audio/l' + it.id + '.mp3', btn, function () { speakLines(it.script); });
+  }
+  /* Same button pressed again while its MP3 is playing stops it. */
+  function toggleMp3(url, btn, fallback) {
+    if (btn && curBtn === btn && curAudio) { stopSound(); return; }
+    playMp3(url, btn, fallback);
+  }
+  function playGrammar(btn, g) {
+    if (!g) return;
+    toggleMp3('audio/g_' + g.i + '.mp3', btn, function () { speak(g.ex); });
+  }
+  function playVocabEx(btn, x) {
+    if (!x) return;
+    toggleMp3('audio/vx_' + x.i + '.mp3', btn, function () { speak(x.ex); });
   }
   function playLine(btn, it, n) {
     var line = it && it.script[n];
@@ -726,7 +739,7 @@ nav.tabbar button.on{color:var(--accent)}
     var card = $('fcard'), justSwiped = false;
     on(card, 'click', function (e) {
       if (justSwiped) { justSwiped = false; return; }
-      if (e.target.closest('[data-sayex]')) { speak(x.ex); return; }
+      if (e.target.closest('[data-sayex]')) { playVocabEx(e.target.closest('[data-sayex]'), x); return; }
       vFlipped = !vFlipped; card.classList.toggle('flipped', vFlipped);
     });
     on($('vsay'), 'click', function () { speak(x.w); });
@@ -802,7 +815,7 @@ nav.tabbar button.on{color:var(--accent)}
       var done = !!S.g[g.i];
       return '<div class="card gcard' + (done ? ' done' : '') + '" data-g="' + g.i + '">'
         + '<div class="ghead"><div><div class="gt jp">' + ruby(g.t) + '</div><div class="gm">' + esc(g.m) + '</div></div>'
-        + '<div class="gbtn"><button class="btn ghost" data-gsay="' + g.i + '" style="padding:8px 10px">🔊</button>'
+        + '<div class="gbtn"><button class="btn ghost" data-gsay="' + g.i + '" data-playing="♪" aria-label="예문 듣기" style="padding:8px 10px">🔊</button>'
         + '<button class="btn ghost" data-gdone="' + g.i + '" style="padding:8px 10px">' + (done ? '✓' : '○') + '</button></div></div>'
         + '<div class="gbody hide">'
         + '<div class="lab">접속</div><div class="val jp">' + ruby(g.conn) + '</div>'
@@ -822,7 +835,7 @@ nav.tabbar button.on{color:var(--accent)}
       b.addEventListener('click', function () { gCat = b.getAttribute('data-gc'); renderGrammar(); });
     });
     Array.prototype.forEach.call($('tab-grammar').querySelectorAll('[data-gsay]'), function (b) {
-      b.addEventListener('click', function (e) { e.stopPropagation(); var g = byId(GRAM, b.getAttribute('data-gsay')); speak(g.ex); });
+      b.addEventListener('click', function (e) { e.stopPropagation(); playGrammar(b, byId(GRAM, b.getAttribute('data-gsay'))); });
     });
     Array.prototype.forEach.call($('tab-grammar').querySelectorAll('[data-gdone]'), function (b) {
       b.addEventListener('click', function (e) {
@@ -1176,7 +1189,7 @@ nav.tabbar button.on{color:var(--accent)}
     answerReading: answerReading, answerListening: answerListening, toggleTr: toggleTr,
     markVocab: markVocab, toggleGrammarDone: toggleGrammarDone,
     speak: speak, speakLines: speakLines, quiz: function () { return QZ; },
-    listeningItem: lById, playItem: playItem,
+    listeningItem: lById, playItem: playItem, playGrammar: playGrammar, playVocabEx: playVocabEx,
     plain: plain, ruby: ruby, ios: function () { return IOS; },
     setFuri: function (v) { S.furi = !!v; applyFuri(); }
   };
