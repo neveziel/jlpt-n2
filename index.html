@@ -257,6 +257,19 @@ nav.tabbar button.on{color:var(--accent)}
   nav.tabbar button i{font-size:17px}
 }
 
+
+/* ── 기기 간 진도 동기화 ── */
+.hbtn{margin-right:auto;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 10px;font:inherit;font-size:11px;font-weight:700;color:var(--sub)}
+.hbtn:active{transform:scale(.97)}
+.syrow{display:flex;gap:8px;margin-top:10px}
+.syrow .btn{flex:1}
+.syta{width:100%;box-sizing:border-box;margin-top:10px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:12.5px;line-height:1.5;resize:vertical;min-height:46px}
+.systat{margin-top:8px;font-size:12px;color:var(--sub);line-height:1.6;word-break:break-all}
+.systat.err{color:var(--bad)}
+.sygist{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+.sygist summary{font-size:13px;font-weight:700;color:var(--accent);cursor:pointer}
+.syin{width:100%;box-sizing:border-box;margin-top:8px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
+.sylink{display:inline-block;margin-top:10px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none}
 </style>
 </head>
 <body class="furi">
@@ -266,7 +279,7 @@ nav.tabbar button.on{color:var(--accent)}
     <div class="hprog"><div class="pct" id="hpct">0%</div><div class="lbl">전체 진도</div></div>
   </div>
   <div class="bar"><i id="hbar"></i></div>
-  <div class="hrow hrow2"><span>예문 후리가나</span>
+  <div class="hrow hrow2"><button class="hbtn" id="syncbtn">🔄 진도 동기화</button><span>예문 후리가나</span>
     <button class="sw on" id="furibtn" aria-pressed="true" aria-label="예문 후리가나 켜기/끄기"><i></i></button>
   </div>
 </header>
@@ -657,7 +670,7 @@ nav.tabbar button.on{color:var(--accent)}
       + '<div class="note" style="margin-top:10px">입실 시각·시험장은 접수한 실시위원회(서울/부산/제주) 수험표로 최종 확인하세요. 일본 내 응시는 시작 시각이 다릅니다(9:10).</div>'
       + '</div>'
       + '<h3>시험 당일 체크리스트</h3><div class="card tight" style="padding:6px 14px">' + chk + '</div>'
-      + '<p class="muted small" style="margin-top:14px">진도는 이 브라우저에만 저장됩니다(localStorage). 앱을 지우거나 시크릿 모드로 열면 초기화됩니다.</p>';
+      + '<p class="muted small" style="margin-top:14px">진도는 이 기기에 저장되며, 아래 팁 탭의 [🔄 진도 동기화]로 아이폰·아이패드에 맞출 수 있습니다.</p>';
 
     bindGo($('tab-home'));
   }
@@ -1165,11 +1178,390 @@ nav.tabbar button.on{color:var(--accent)}
     var free = TIPS.free.map(function (l) {
       return '<a href="' + esc(l.u) + '" target="_blank" rel="noopener"><b>' + esc(l.t) + '</b><span>' + esc(l.d) + '</span></a>';
     }).join('');
-    $('tab-tips').innerHTML = '<h2>출처별 핵심 요약</h2><p class="lead">구글·네이버·유튜브·X에서 추린 실전 팁과 무료 학습 링크</p>'
+    $('tab-tips').innerHTML = '<div id="syHost"></div><h2>출처별 핵심 요약</h2><p class="lead">구글·네이버·유튜브·X에서 추린 실전 팁과 무료 학습 링크</p>'
       + '<div class="card"><h3 style="margin-top:0">시험 개요</h3>' + facts + '</div>'
       + srcs
       + '<h2 style="margin-top:20px">무료 학습 링크</h2><div class="links">' + free + '</div>'
       + '<div class="note" style="margin-top:14px">' + esc(TIPS.caveat) + '</div>';
+    try { var host = $('syHost'); if (host) host.appendChild(buildSyncCard()); syFill(); syStat(); } catch (e) { }
+  }
+
+  /* ---------- 기기 간 진도 동기화 ---------- */
+  var SYNC_CFG = {
+    app: 'jlpt_n2', name: 'JLPT N2 앱',
+    cfgKey: 'jlptn2.sync.v1', stKey: 'jlptn2.syncdata.v1',
+    keys: ['v', 'g', 'chk', 'quizOk', 'quizBest', 'quizWrong'], prefix: ['ans_'],
+    state: function () { return S; },
+    persist: function () { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } },
+    refresh: function () {
+      paintHeader(); renderHome();
+      var act = document.querySelector('.tab.on');
+      var id = act ? String(act.id).replace('tab-', '') : 'home';
+      if (id && id !== 'home' && id !== 'tips') { try { go(id); } catch (e) { } }
+      try { syStat(); } catch (e) { }
+    },
+    onStatus: function () { try { syStat(); } catch (e) { } },
+    onRemote: function () { toast('다른 기기 진도 반영됨'); }
+  };
+/* ═════════════ 기기 간 진도 동기화 ═════════════
+   ① 간편 진도 코드: 복사·붙여넣기만으로 다른 기기에 옮기기 (로그인 불필요)
+   ② GitHub Gist 자동 동기화: 토큰은 이 기기 localStorage에만 저장된다 (소스/HTML에 하드코딩 없음)
+   두 앱(스피킹 · JLPT N2)이 하나의 Gist 파일(jp_apps_sync.json)을 앱별 키로 나눠 쓴다. */
+var SYNC = (function (A) {
+  var GIST_FILE = 'jp_apps_sync.json', PREFIX = 'JP-SYNC1:';
+  var GIST_DESC = 'JP Apps progress sync (speaking + jlpt-n2)';
+  var cfg = { token: '', gistId: '', enabled: false, lastSync: 0, lastError: '' };
+  try { var c0 = localStorage.getItem(A.cfgKey); if (c0) { var o0 = JSON.parse(c0); for (var kk in o0) if (kk in cfg) cfg[kk] = o0[kk]; } } catch (e) { }
+  var MS = { v: {}, t: {} };
+  try { var d0 = localStorage.getItem(A.stKey); if (d0) { var p0 = JSON.parse(d0); if (p0 && p0.v && p0.t) MS = p0; } } catch (e) { }
+  var pushTimer = null, pollTimer = null, busy = false;
+
+  function saveCfg() { try { localStorage.setItem(A.cfgKey, JSON.stringify(cfg)); } catch (e) { } }
+  function saveMS() { try { localStorage.setItem(A.stKey, JSON.stringify(MS)); } catch (e) { } }
+  function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  function notify() { try { A.onStatus && A.onStatus(); } catch (e) { } }
+
+  /* ---------- 진도 → 평평한 경로 맵 ---------- */
+  function isSynced(k) {
+    for (var i = 0; i < A.keys.length; i++) if (A.keys[i] === k) return true;
+    for (var j = 0; j < A.prefix.length; j++) if (k.indexOf(A.prefix[j]) === 0) return true;
+    return false;
+  }
+  function flat() {
+    var s = A.state(), out = {}, k, i, v, iv;
+    for (k in s) {
+      if (!Object.prototype.hasOwnProperty.call(s, k) || !isSynced(k)) continue;
+      v = s[k];
+      if (v === undefined) continue;
+      if (v && typeof v === 'object' && !(v instanceof Array)) {
+        for (i in v) {
+          if (!Object.prototype.hasOwnProperty.call(v, i)) continue;
+          iv = v[i];
+          out[k + ':' + i] = (iv === false || iv === 0 || iv === '' || iv === null || iv === undefined) ? null : iv;
+        }
+      } else if (v !== null) {
+        out[k] = v;
+      }
+    }
+    return out;
+  }
+
+  /* 로컬 저장 직후 호출: 바뀐 경로에 지금 시각을 찍는다 (해제·삭제는 null로 남긴다) */
+  function commit() {
+    var cur = flat(), now = Date.now(), changed = false, p;
+    for (p in cur) {
+      if (!(p in MS.v) || !same(MS.v[p], cur[p])) { MS.v[p] = cur[p]; MS.t[p] = now; changed = true; }
+    }
+    for (p in MS.v) {
+      if (!(p in cur) && MS.v[p] !== null) { MS.v[p] = null; MS.t[p] = now; changed = true; }
+    }
+    if (changed) { saveMS(); schedulePush(); }
+    return changed;
+  }
+  /* 첫 실행: 지금 진도는 '예전 기록'(t=0)으로 올려 둔다 → Gist에 있는 더 새로운 기록이 이긴다 */
+  function bootstrap() {
+    var cur = flat(), p, ch = false;
+    for (p in cur) if (!(p in MS.v)) { MS.v[p] = cur[p]; MS.t[p] = 0; ch = true; }
+    if (ch) saveMS();
+  }
+
+  /* 경로마다 더 최근에 바뀐 쪽을 고른다 */
+  function merge(a, b) {
+    var out = { v: {}, t: {} }, un = {}, p, av, bv, at, bt;
+    for (p in a.v) un[p] = 1;
+    for (p in b.v) un[p] = 1;
+    for (p in un) {
+      av = (p in a.v) ? a.v[p] : undefined; bv = (p in b.v) ? b.v[p] : undefined;
+      at = a.t[p] || 0; bt = b.t[p] || 0;
+      if (!(p in a.v)) { out.v[p] = bv; out.t[p] = bt; }
+      else if (!(p in b.v)) { out.v[p] = av; out.t[p] = at; }
+      else if (at > bt) { out.v[p] = av; out.t[p] = at; }
+      else if (bt > at) { out.v[p] = bv; out.t[p] = bt; }
+      else if (av === null && bv !== null) { out.v[p] = bv; out.t[p] = bt; }
+      else { out.v[p] = av; out.t[p] = at; }
+    }
+    return out;
+  }
+
+  /* 합쳐진 진도를 현재 상태에 반영 */
+  function apply(m) {
+    var s = A.state(), changed = false, p, k, sub, val, cut;
+    for (p in m.v) {
+      val = m.v[p];
+      cut = p.indexOf(':');
+      if (cut > 0) {
+        k = p.slice(0, cut); sub = p.slice(cut + 1);
+        if (!s[k] || typeof s[k] !== 'object') { if (val === null) continue; s[k] = {}; }
+        if (val === null) { if (s[k][sub] !== undefined) { delete s[k][sub]; changed = true; } }
+        else if (!same(s[k][sub], val)) { s[k][sub] = val; changed = true; }
+      } else {
+        k = p;
+        if (val === null) { if (s[k] !== undefined) { delete s[k]; changed = true; } }
+        else if (!same(s[k], val)) { s[k] = val; changed = true; }
+      }
+    }
+    MS = m; saveMS();
+    if (changed) { A.persist(); try { A.refresh(); } catch (e) { } }
+    return changed;
+  }
+
+  /* ---------- 간편 진도 코드 ---------- */
+  function utf8b64(str) {
+    if (typeof TextEncoder !== 'undefined') {
+      var bytes = new TextEncoder().encode(str), bin = '';
+      for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64utf8(b64) {
+    var bin = atob(b64);
+    if (typeof TextDecoder !== 'undefined') {
+      var bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+    return decodeURIComponent(escape(bin));
+  }
+  function exportCode() {
+    return PREFIX + utf8b64(JSON.stringify({ a: A.app, n: A.name, v: MS.v, at: Date.now() }));
+  }
+  function importCode(text) {
+    var raw = String(text == null ? '' : text).replace(/\s+/g, '');
+    if (!raw) return { ok: false, msg: '붙여넣은 코드가 없어요. [내 진도 복사]로 만든 코드를 넣어 주세요' };
+    var body = raw.indexOf(PREFIX) === 0 ? raw.slice(PREFIX.length) : raw, obj = null;
+    try { obj = JSON.parse(b64utf8(body)); } catch (e) { try { obj = JSON.parse(body); } catch (e2) { return { ok: false, msg: '코드를 읽지 못했어요. 코드 전체를 다시 복사해 주세요' }; } }
+    if (!obj || !obj.v || typeof obj.v !== 'object') return { ok: false, msg: '진도 코드 형식이 아니에요' };
+    if (obj.a && obj.a !== A.app) return { ok: false, msg: '이 코드는 ' + (obj.n || (obj.a === 'speaking' ? '스피킹 앱' : 'JLPT N2 앱')) + ' 진도예요. 그 앱에서 불러와 주세요' };
+    var inc = { v: {}, t: {} }, p, n = 0;
+    for (p in obj.v) { inc.v[p] = obj.v[p]; inc.t[p] = obj.at || Date.now(); n++; }
+    var changed = apply(merge(inc, MS));
+    if (cfg.token && cfg.gistId) schedulePush();
+    return { ok: true, msg: changed ? ('진도 ' + n + '항목을 불러왔어요') : '이미 같은 진도예요', n: n };
+  }
+
+  /* ---------- GitHub Gist ---------- */
+  function api(method, path, body) {
+    var opt = { method: method, headers: { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + cfg.token, 'Content-Type': 'application/json' } };
+    if (body) opt.body = JSON.stringify(body);
+    return fetch('https://api.github.com' + path, opt).then(function (r) {
+      return r.text().then(function (txt) {
+        var j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) { }
+        if (!r.ok) {
+          var m = (j && j.message) || ('HTTP ' + r.status);
+          if (r.status === 401) m = '토큰이 올바르지 않아요 (401). gist 권한을 확인해 주세요';
+          else if (r.status === 404) m = 'Gist를 찾을 수 없어요 (404). Gist ID를 확인해 주세요';
+          else if (r.status === 403) m = '권한 또는 호출 한도 문제예요 (403)';
+          throw new Error(m);
+        }
+        return j;
+      });
+    });
+  }
+  function parseAll(txt) { try { var o = JSON.parse(txt); if (o && typeof o === 'object') return o; } catch (e) { } return {}; }
+  function readAll() {
+    return api('GET', '/gists/' + cfg.gistId).then(function (g) {
+      var f = g && g.files ? g.files[GIST_FILE] : null;
+      if (!f) return {};
+      if (f.truncated && f.raw_url) return fetch(f.raw_url, { cache: 'no-store' }).then(function (r) { return r.text(); }).then(parseAll);
+      return parseAll(f.content || '');
+    });
+  }
+  function patchAll(all) {
+    all = all || {}; all.schema = 1;
+    all[A.app] = { v: MS.v, t: MS.t, updatedAt: Date.now(), n: A.name };
+    var files = {}; files[GIST_FILE] = { content: JSON.stringify(all) };
+    return api('PATCH', '/gists/' + cfg.gistId, { files: files });
+  }
+  function mergeRemote(remote) {
+    var got = (remote && remote.v) ? { v: remote.v, t: remote.t || {} } : { v: {}, t: {} };
+    return apply(merge(got, MS));
+  }
+  function fail(e) { busy = false; cfg.lastError = (e && e.message) ? e.message : String(e); saveCfg(); notify(); throw e; }
+
+  /* Gist ID를 모르면: 같은 설명의 Gist를 먼저 찾고, 없으면 새로 만든다 */
+  function findGist() {
+    return api('GET', '/gists?per_page=100').then(function (list) {
+      if (!list || !list.length) return null;
+      for (var i = 0; i < list.length; i++) {
+        var g = list[i];
+        if (g && g.description === GIST_DESC && g.files && g.files[GIST_FILE]) return g.id;
+      }
+      return null;
+    }).catch(function () { return null; });
+  }
+  function doSync() {
+    return readAll().then(function (all) {
+      var changed = mergeRemote(all[A.app] || null);
+      return patchAll(all).then(function () {
+        busy = false; cfg.lastSync = Date.now(); cfg.lastError = ''; saveCfg(); notify();
+        return { created: false, changed: changed };
+      });
+    });
+  }
+  function createGist() {
+    var files = {}; files[GIST_FILE] = { content: '{}' };
+    return api('POST', '/gists', { description: GIST_DESC, public: false, files: files }).then(function (g) {
+      cfg.gistId = g.id; cfg.enabled = true; saveCfg();
+      return readAll().then(function (all) {
+        var changed = mergeRemote(all[A.app] || null);
+        return patchAll(all).then(function () {
+          busy = false; cfg.lastSync = Date.now(); cfg.lastError = ''; saveCfg(); notify();
+          return { created: true, changed: changed };
+        });
+      });
+    });
+  }
+  function syncNow() {
+    if (busy) return Promise.reject(new Error('동기화 중이에요. 잠시만 기다려 주세요'));
+    if (!cfg.token) return Promise.reject(new Error('GitHub 토큰을 입력해 주세요'));
+    busy = true;
+    var pre = cfg.gistId ? Promise.resolve() : findGist().then(function (id) { if (id) { cfg.gistId = id; cfg.enabled = true; saveCfg(); } });
+    return pre.then(function () { return cfg.gistId ? doSync() : createGist(); }).catch(fail);
+  }
+
+  function pull() {
+    if (!cfg.token || !cfg.gistId || busy) return Promise.resolve(false);
+    if (typeof document !== 'undefined' && document.hidden) return Promise.resolve(false);
+    return readAll().then(function (all) {
+      var changed = mergeRemote(all[A.app] || null);
+      cfg.lastSync = Date.now(); cfg.lastError = ''; saveCfg(); notify();
+      if (changed) { try { A.onRemote && A.onRemote(); } catch (e) { } }
+      return changed;
+    }).catch(function (e) { cfg.lastError = (e && e.message) ? e.message : String(e); saveCfg(); notify(); return false; });
+  }
+  function schedulePush() {
+    if (!cfg.token || !cfg.gistId) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () { syncNow().catch(function () { }); }, 1500);
+  }
+
+  function connect(token, gistId) {
+    token = String(token || '').replace(/\s+/g, '');
+    gistId = String(gistId || '').replace(/\s+/g, '');
+    if (!token) return Promise.reject(new Error('GitHub 토큰을 입력해 주세요'));
+    if (gistId) { cfg.token = token; cfg.gistId = gistId; cfg.enabled = true; saveCfg(); }
+    else { cfg.token = token; cfg.gistId = ''; cfg.enabled = true; saveCfg(); }
+    return syncNow();
+  }
+  function disconnect() {
+    cfg.token = ''; cfg.gistId = ''; cfg.enabled = false; cfg.lastError = ''; cfg.lastSync = 0;
+    saveCfg(); notify();
+  }
+  function statusText() {
+    if (cfg.lastError) return '동기화 오류: ' + cfg.lastError;
+    if (cfg.token && cfg.gistId) return '자동 동기화 연결됨' + (cfg.lastSync ? ' · 마지막 ' + hhmm(cfg.lastSync) : '') + ' · Gist ' + cfg.gistId;
+    if (cfg.token) return '토큰만 입력됨 — [연결 및 지금 동기화]를 누르면 Gist가 자동으로 만들어져요';
+    return '코드 복사·붙여넣기로 바로 맞출 수 있어요 (자동 동기화는 선택)';
+  }
+  function hhmm(ts) {
+    try { var d = new Date(ts); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); } catch (e) { return ''; }
+  }
+  function count() { var n = 0, p; for (p in MS.v) if (MS.v[p] !== null) n++; return n; }
+
+  function start() {
+    bootstrap();
+    if (cfg.token && cfg.gistId) setTimeout(pull, 700);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) pull(); });
+    clearInterval(pollTimer); pollTimer = setInterval(pull, 45000);
+    notify();
+  }
+
+  return {
+    cfg: cfg, start: start, commit: commit, exportCode: exportCode, importCode: importCode,
+    syncNow: syncNow, pull: pull, connect: connect, disconnect: disconnect,
+    statusText: statusText, count: count
+  };
+})(SYNC_CFG);
+
+  /* 앱의 저장(save)이 일어날 때마다 바뀐 진도에 시각을 찍는다 */
+  (function () { var core = save; save = function () { core(); SYNC.commit(); }; })();
+
+function syQ(sel) { return document.querySelector(sel); }
+function syFill() {
+  var t = syQ('#syToken'), g = syQ('#syGist');
+  if (t) { t.value = ''; t.placeholder = SYNC.cfg.token ? '저장된 토큰 사용 중 · 새 값을 넣으면 교체' : 'GitHub Token (gist 권한)'; }
+  if (g) { g.value = ''; g.placeholder = SYNC.cfg.gistId ? ('저장된 Gist 사용 중 · ' + String(SYNC.cfg.gistId).slice(0, 12)) : 'Gist ID (비워두면 자동 생성)'; }
+}
+function syStat() {
+  var el = syQ('#syStat'); if (!el) return;
+  el.textContent = SYNC.statusText() + ' · 동기화 항목 ' + SYNC.count() + '개';
+  el.className = 'systat' + (SYNC.cfg.lastError ? ' err' : '');
+}
+function syCopy() {
+  var ta = syQ('#syCode'), code = SYNC.exportCode();
+  if (ta) ta.value = code;
+  function fallback() { if (ta) { try { ta.focus(); ta.select(); } catch (e) { } } toast('코드를 아래 칸에 넣었어요 — 길게 눌러 [복사]한 뒤 다른 기기에 붙여넣으세요'); }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(function () { toast('진도 코드를 복사했어요 — 다른 기기에 붙여넣으세요'); }, fallback);
+    else fallback();
+  } catch (e) { fallback(); }
+  syStat();
+}
+function syLoad() {
+  var ta = syQ('#syCode'); if (!ta) return;
+  var r = SYNC.importCode(ta.value);
+  toast(r.msg);
+  if (r.ok) { ta.value = ''; setTimeout(function () { try { syStat(); } catch (e) { } }, 60); }
+}
+function syConnect() {
+  var t = syQ('#syToken'), g = syQ('#syGist');
+  var token = (t && t.value ? t.value.replace(/\s+/g, '') : '') || SYNC.cfg.token;
+  var gid = (g && g.value ? g.value.replace(/\s+/g, '') : '') || SYNC.cfg.gistId;
+  if (!token) { toast('GitHub 토큰을 입력해 주세요'); return; }
+  toast('동기화 중…');
+  SYNC.connect(token, gid).then(function (r) {
+    if (r.created) toast('비밀 Gist를 만들었어요 — 다른 기기에는 토큰만 넣고 연결하면 자동으로 찾아요');
+    else toast('동기화 완료' + (r.changed ? ' · 다른 기기 진도를 합쳤어요' : ''));
+    if (t) t.value = ''; if (g) g.value = '';
+    syFill(); syStat();
+  }).catch(function (e) { toast((e && e.message) || '동기화에 실패했어요'); syStat(); });
+}
+function syOff() {
+  if (!SYNC.cfg.token && !SYNC.cfg.gistId) { toast('연결된 자동 동기화가 없어요'); return; }
+  var ok = true;
+  try { ok = window.confirm('자동 동기화 연결을 해제할까요?\n이 기기의 진도는 그대로 남습니다.'); } catch (e) { }
+  if (!ok) return;
+  SYNC.disconnect(); syFill(); syStat(); toast('연결을 해제했어요');
+}
+function syBind(root) {
+  var host = root || document;
+  var ids = { syCopy: syCopy, syLoad: syLoad, syConnect: syConnect, syOff: syOff };
+  for (var id in ids) {
+    var el = host.querySelector ? host.querySelector('#' + id) : null;
+    if (el) el.addEventListener('click', ids[id]);
+  }
+}
+  var syCard = null;
+  function buildSyncCard() {
+    if (syCard) return syCard;
+    var d = document.createElement('div');
+    d.className = 'card'; d.id = 'syCard';
+    d.innerHTML = '<h3 style="margin-top:0">🔄 기기 간 진도 동기화</h3>'
+      + '<p class="muted small" style="margin:-4px 0 0">아이폰·아이패드 진도를 맞춥니다. 코드 복사·붙여넣기만으로도 되고, GitHub Gist를 연결하면 자동으로 맞춰져요.</p>'
+      + '<div class="syrow"><button class="btn pri sm" id="syCopy">📋 내 진도 복사</button><button class="btn sm" id="syLoad">📥 진도 불러오기</button></div>'
+      + '<textarea class="syta" id="syCode" rows="2" placeholder="여기에 진도 코드를 붙여넣고 [📥 진도 불러오기] — 칸이 비어 있으면 [📋 내 진도 복사]를 먼저" autocapitalize="off" spellcheck="false"></textarea>'
+      + '<div class="systat" id="syStat"></div>'
+      + '<details class="sygist"><summary>GitHub Gist 자동 동기화 (한 번만 설정)</summary>'
+      + '<input class="syin" id="syToken" placeholder="GitHub Token (gist 권한)" autocomplete="off" autocapitalize="off" spellcheck="false">'
+      + '<input class="syin" id="syGist" placeholder="Gist ID (비워두면 자동 생성)" autocomplete="off" autocapitalize="off" spellcheck="false">'
+      + '<div class="syrow"><button class="btn pri sm" id="syConnect">연결 및 지금 동기화</button><button class="btn ghost sm" id="syOff">연결 해제</button></div>'
+      + '<a class="sylink" href="https://github.com/settings/tokens/new?scopes=gist&description=JP-Apps-Sync" target="_blank" rel="noopener">GitHub 토큰 발급 바로가기 ↗</a>'
+      + '</details>';
+    syCard = d;
+    syBind(d);
+    return d;
+  }
+  function initSyncUI() {
+    on($('syncbtn'), 'click', function () {
+      go('tips');
+      setTimeout(function () {
+        syFill(); syStat();
+        var el = $('syCard');
+        if (el && el.scrollIntoView) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { } }
+      }, 70);
+    });
+    SYNC.start();
   }
 
   /* ---------- init ---------- */
@@ -1189,6 +1581,7 @@ nav.tabbar button.on{color:var(--accent)}
     applyFuri();
     paintHeader();
     go('home');
+    initSyncUI();
   }
   window.__APP__ = {
     go: go, state: S, stat: stat, total: TOTAL,
