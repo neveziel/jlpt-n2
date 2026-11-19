@@ -1219,6 +1219,9 @@ var SYNC = (function (A) {
   function saveCfg() { try { localStorage.setItem(A.cfgKey, JSON.stringify(cfg)); } catch (e) { } }
   function saveMS() { try { localStorage.setItem(A.stKey, JSON.stringify(MS)); } catch (e) { } }
   function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  /* 같은 밀리초에 두 번 바뀌어도 순서가 뒤집히지 않게 단조 증가 시각을 쓴다 */
+  var lastStamp = 0;
+  function stamp() { var t = Date.now(); if (t <= lastStamp) t = lastStamp + 1; lastStamp = t; return t; }
   function notify() { try { A.onStatus && A.onStatus(); } catch (e) { } }
 
   /* ---------- 진도 → 평평한 경로 맵 ---------- */
@@ -1248,7 +1251,7 @@ var SYNC = (function (A) {
 
   /* 로컬 저장 직후 호출: 바뀐 경로에 지금 시각을 찍는다 (해제·삭제는 null로 남긴다) */
   function commit() {
-    var cur = flat(), now = Date.now(), changed = false, p;
+    var cur = flat(), now = stamp(), changed = false, p;
     for (p in cur) {
       if (!(p in MS.v) || !same(MS.v[p], cur[p])) { MS.v[p] = cur[p]; MS.t[p] = now; changed = true; }
     }
@@ -1333,8 +1336,9 @@ var SYNC = (function (A) {
     try { obj = JSON.parse(b64utf8(body)); } catch (e) { try { obj = JSON.parse(body); } catch (e2) { return { ok: false, msg: '코드를 읽지 못했어요. 코드 전체를 다시 복사해 주세요' }; } }
     if (!obj || !obj.v || typeof obj.v !== 'object') return { ok: false, msg: '진도 코드 형식이 아니에요' };
     if (obj.a && obj.a !== A.app) return { ok: false, msg: '이 코드는 ' + (obj.n || (obj.a === 'speaking' ? '스피킹 앱' : 'JLPT N2 앱')) + ' 진도예요. 그 앱에서 불러와 주세요' };
-    var inc = { v: {}, t: {} }, p, n = 0;
-    for (p in obj.v) { inc.v[p] = obj.v[p]; inc.t[p] = obj.at || Date.now(); n++; }
+    var inc = { v: {}, t: {} }, p, n = 0, now = stamp();
+    /* 붙여넣기는 '지금 적용하라'는 명시적 행동 → 코드에 든 항목은 이 기기 기록보다 최신으로 본다 */
+    for (p in obj.v) { inc.v[p] = obj.v[p]; inc.t[p] = now; n++; }
     var changed = apply(merge(inc, MS));
     if (cfg.token && cfg.gistId) schedulePush();
     return { ok: true, msg: changed ? ('진도 ' + n + '항목을 불러왔어요') : '이미 같은 진도예요', n: n };
