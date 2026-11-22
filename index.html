@@ -1203,7 +1203,7 @@ body.furi .kcard .opt{line-height:1.9}
   var SYNC_CFG = {
     app: 'jlpt_n2', name: 'JLPT N2 앱',
     cfgKey: 'jlptn2.sync.v1', stKey: 'jlptn2.syncdata.v1',
-    keys: ['v', 'g', 'chk', 'quizOk', 'quizBest', 'quizWrong', 'kako'], prefix: ['ans_'],
+    keys: ['v', 'g', 'chk', 'quizOk', 'quizBest', 'quizWrong', 'kakoA'], prefix: ['ans_'],
     state: function () { return S; },
     persist: function () { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } },
     refresh: function () {
@@ -1613,7 +1613,7 @@ function syBind(root) {
   }
   var TGT = /《([^》]*)》/g;
 
-  function kStore() { if (!S.kako) S.kako = {}; return S.kako; }
+  function kStore() { if (!S.kakoA) S.kakoA = {}; return S.kakoA; }
   function kset() {
     for (var i = 0; i < KAKO.sets.length; i++) if (KAKO.sets[i].id === KF.set) return KAKO.sets[i];
     return KAKO.sets[0];
