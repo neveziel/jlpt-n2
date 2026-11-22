@@ -1602,7 +1602,15 @@ function syBind(root) {
   }
   /* ---------- 기출문제 (past papers) ---------- */
   var KAKO = window.__KAKO__ || { sets: [] };
-  var KF = { set: (KAKO.sets[0] || {}).id, sec: 'all' };
+  var KF = { set: (KAKO.sets[0] || {}).id, sec: 'all', limit: 24 };
+  function kProgress(s, st) {
+    var done = 0, ok = 0;
+    s.items.forEach(function (it) { if (typeof st[it.id] === 'number') { done++; if (st[it.id] === it.a) ok++; } });
+    var d = $('kdone'), t = $('kstat'), b = $('kbar');
+    if (d) d.textContent = done + ' / ' + s.items.length + ' 풀이';
+    if (t) t.textContent = '정답 ' + ok + ' · 정답률 ' + (done ? Math.round(ok / done * 100) : 0) + '%';
+    if (b) b.style.width = (s.items.length ? Math.round(done / s.items.length * 100) : 0) + '%';
+  }
   var TGT = /《([^》]*)》/g;
 
   function kStore() { if (!S.kako) S.kako = {}; return S.kako; }
@@ -1678,13 +1686,13 @@ function syBind(root) {
     }
     return h + '</div>';
   }
-  function bindKako() {
-    var host = $('tab-kako');
+  function bindKako(root) {
+    var host = root || $('tab-kako');
     Array.prototype.forEach.call(host.querySelectorAll('[data-ks]'), function (b) {
-      b.addEventListener('click', function () { KF.set = b.getAttribute('data-ks'); renderKako(); });
+      b.addEventListener('click', function () { KF.set = b.getAttribute('data-ks'); KF.limit = 24; renderKako(); });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-kc]'), function (b) {
-      b.addEventListener('click', function () { KF.sec = b.getAttribute('data-kc'); renderKako(); });
+      b.addEventListener('click', function () { KF.sec = b.getAttribute('data-kc'); KF.limit = 24; renderKako(); });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-ka]'), function (b) {
       b.addEventListener('click', function () {
@@ -1693,7 +1701,17 @@ function syBind(root) {
         if (typeof st[id] === 'number') return;
         st[id] = i;
         save();
-        keepScroll(function () { renderKako(); });
+        var s = kset(), it = null;
+        s.items.forEach(function (x) { if (x.id === id) it = x; });
+        var card = document.getElementById('k-' + id);
+        if (it && card) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = kCard(it, st);
+          var fresh = tmp.firstChild;
+          card.parentNode.replaceChild(fresh, card);
+          bindKako(fresh);
+          kProgress(s, st);
+        }
       });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-kp]'), function (b) {
@@ -1714,6 +1732,10 @@ function syBind(root) {
         save();
         keepScroll(function () { renderKako(); });
       });
+    });
+    on($('kmore'), 'click', function () {
+      KF.limit += 24;
+      keepScroll(function () { renderKako(); });
     });
     on($('kreset'), 'click', function () {
       if (!confirm('이 회차의 답을 모두 지우고 처음부터 풀까요?')) return;
@@ -1745,17 +1767,23 @@ function syBind(root) {
       + '<div class="note jp" style="margin-bottom:10px">문제 지문은 일본어국제교육지원협회·국제교류기금 공개 자료(2025年7月 시험은 공개 복원본)를 개인 학습용으로 옮긴 것입니다.</div>'
       + '<div class="chips">' + setChips + '</div>'
       + '<div class="chips">' + secChips + '</div>'
-      + '<div class="qmeta"><span>' + done + ' / ' + s.items.length + ' 풀이</span><span>정답 ' + ok + ' · 정답률 '
-      + (done ? Math.round(ok / done * 100) : 0) + '%</span></div>'
-      + '<div class="bar" style="margin:6px 0 14px"><i style="width:' + (s.items.length ? Math.round(done / s.items.length * 100) : 0) + '%"></i></div>';
+      + '<div class="qmeta"><span id="kdone">' + done + ' / ' + s.items.length + ' 풀이</span><span id="kstat">정답 ' + ok
+      + ' · 정답률 ' + (done ? Math.round(ok / done * 100) : 0) + '%</span></div>'
+      + '<div class="bar" style="margin:6px 0 14px"><i id="kbar" style="width:'
+      + (s.items.length ? Math.round(done / s.items.length * 100) : 0) + '%"></i></div>';
     var lastPass = '';
-    list.forEach(function (it) {
+    var shown = list.slice(0, KF.limit);
+    shown.forEach(function (it) {
       var pass = it.passage && s.passages[it.passage];
       if (pass && it.passage !== lastPass) html += kPassage(pass);
       lastPass = it.passage || '';
       html += kCard(it, st);
     });
     if (!list.length) html += '<div class="card"><p class="muted">문항이 없습니다.</p></div>';
+    if (list.length > shown.length) {
+      html += '<button class="btn" id="kmore" style="width:100%;margin:2px 0 10px">다음 ' + Math.min(24, list.length - shown.length)
+        + '문항 더 보기 (' + (list.length - shown.length) + '개 남음)</button>';
+    }
     html += '<button class="btn" id="kreset" style="width:100%;margin:4px 0 12px">' + esc(s.label) + ' 답 초기화</button>';
     $('tab-kako').innerHTML = html;
     bindKako();
