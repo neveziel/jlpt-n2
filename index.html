@@ -1203,7 +1203,7 @@ body.furi .kcard .opt{line-height:1.9}
   var SYNC_CFG = {
     app: 'jlpt_n2', name: 'JLPT N2 앱',
     cfgKey: 'jlptn2.sync.v1', stKey: 'jlptn2.syncdata.v1',
-    keys: ['v', 'g', 'chk', 'quizOk', 'quizBest', 'quizWrong'], prefix: ['ans_'],
+    keys: ['v', 'g', 'chk', 'quizOk', 'quizBest', 'quizWrong', 'kako'], prefix: ['ans_'],
     state: function () { return S; },
     persist: function () { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } },
     refresh: function () {
@@ -1605,7 +1605,7 @@ function syBind(root) {
   var KF = { set: (KAKO.sets[0] || {}).id, sec: 'all', limit: 24 };
   function kProgress(s, st) {
     var done = 0, ok = 0;
-    s.items.forEach(function (it) { if (typeof st[it.id] === 'number') { done++; if (st[it.id] === it.a) ok++; } });
+    s.items.forEach(function (it) { if (typeof st[it.id] === 'number') { done++; if (st[it.id] - 1 === it.a) ok++; } });
     var d = $('kdone'), t = $('kstat'), b = $('kbar');
     if (d) d.textContent = done + ' / ' + s.items.length + ' 풀이';
     if (t) t.textContent = '정답 ' + ok + ' · 정답률 ' + (done ? Math.round(ok / done * 100) : 0) + '%';
@@ -1644,10 +1644,11 @@ function syBind(root) {
   function kScript(it) {
     return '<div class="script jp">' + it.lines.map(function (l) {
       return '<div class="sp"><b>' + esc(l.r) + '</b><span class="jp">' + kruby(l.t) + '</span></div>';
-    }).join('') + (it.q ? '<div class="sp"><b>질문</b><span class="jp">' + kruby(it.q) + '</span></div>' : '') + '</div>';
+    }).join('') + '</div>';
   }
   function kCard(it, st) {
-    var ans = st[it.id];
+    var raw = st[it.id];
+    var ans = typeof raw === 'number' ? raw - 1 : null;
     var h = '<div class="card kcard" id="k-' + it.id + '">'
       + '<div class="tagline"><span>' + esc(it.part) + '</span><span>#' + (it.num > 200 ? (it.num > 300 ? it.num - 300 : it.num - 200) : it.num) + '</span></div>';
     if (it.sec === 'choukai') {
@@ -1699,7 +1700,7 @@ function syBind(root) {
         var id = b.getAttribute('data-ka'), i = +b.getAttribute('data-ki');
         var st = kStore();
         if (typeof st[id] === 'number') return;
-        st[id] = i;
+        st[id] = i + 1;
         save();
         var s = kset(), it = null;
         s.items.forEach(function (x) { if (x.id === id) it = x; });
@@ -1761,7 +1762,7 @@ function syBind(root) {
     var list = s.items.filter(function (it) { return KF.sec === 'all' || it.sec === KF.sec; });
     var done = 0, ok = 0;
     s.items.forEach(function (it) {
-      if (typeof st[it.id] === 'number') { done++; if (st[it.id] === it.a) ok++; }
+      if (typeof st[it.id] === 'number') { done++; if (st[it.id] - 1 === it.a) ok++; }
     });
     var html = '<h2>기출문제</h2><p class="lead">' + esc(s.sub) + '</p>'
       + '<div class="note jp" style="margin-bottom:10px">문제 지문은 일본어국제교육지원협회·국제교류기금 공개 자료(2025年7月 시험은 공개 복원본)를 개인 학습용으로 옮긴 것입니다.</div>'
