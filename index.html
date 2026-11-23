@@ -237,6 +237,7 @@ ol.rules li{margin-bottom:8px;font-size:14px}
 .note{font-size:12px;color:var(--warn);background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
 
 /* 적중특강 */
+.chips.wrap{flex-wrap:wrap;overflow-x:visible;row-gap:8px}
 .hitmeta{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--sub);letter-spacing:-.1px;margin-bottom:6px}
 .hitmeta span:first-child{font-weight:700;color:var(--accent)}
 .hcard .hitrow{display:flex;align-items:flex-start;gap:10px}
@@ -1838,8 +1839,8 @@ function syBind(root) {
     (HIT.secs || []).forEach(function (s) {
       var sec = s[0];
       HIT.tips.forEach(function (t) { if (t.sec === sec) out.push({ k: 'tip', o: t }); });
-      HIT.words.forEach(function (w) { if (w.sec === sec) out.push({ k: 'w', o: w }); });
       HIT.quiz.forEach(function (q) { if (q.sec === sec) out.push({ k: 'q', o: q }); });
+      HIT.words.forEach(function (w) { if (w.sec === sec) out.push({ k: 'w', o: w }); });
       HIT.gram.forEach(function (g) { if (g.sec === sec) out.push({ k: 'g', o: g }); });
       HIT.listen.forEach(function (l) { if (l.sec === sec) out.push({ k: 'l', o: l }); });
     });
@@ -2029,7 +2030,7 @@ function syBind(root) {
     var html = '<h2>🎯 적중특강</h2>'
       + '<p class="lead">시원스쿨 일본어 유미희 선생님의 26년 12월 JLPT N2 적중특강(2시간 21분)에서 다룬 어휘·문법·전략·예상 문제만 골라 정리했습니다.</p>'
       + src
-      + '<div class="chips">' + secChips + '</div>'
+      + '<div class="chips wrap">' + secChips + '</div>'
       + '<div class="hitstat" id="hstat"></div>'
       + '<div class="bar" style="margin:0 0 14px"><i id="hbar" style="width:0%"></i></div>';
     html += shown.map(hRender).join('');

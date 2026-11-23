@@ -9,49 +9,67 @@ pre{white-space:pre-wrap;font-size:12px}</style></head>
 <iframe id="fr" src="../index.html"></iframe>
 <script>
 function scan(w, d) {
-  var W = w.innerWidth;
-  var bad = [];
+  var W = w.innerWidth, bad = [];
   Array.prototype.forEach.call(d.querySelectorAll('body *'), function (el) {
     var r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return;
+    if (el.closest && el.closest('.chips')) return; /* horizontally scrollable by design */
     if (r.right > W + 0.5 || r.left < -0.5) {
-      bad.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.className && el.className.toString ? '.' + String(el.className).split(' ')[0] : '')
+      bad.push((el.id ? '#' + el.id : el.tagName.toLowerCase()) + '.' + String(el.className || '').split(' ')[0]
         + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
     } else if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') {
-      bad.push('scroll:' + el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + ' ' + el.scrollWidth + '>' + el.clientWidth);
+      bad.push('scroll:' + (el.id ? '#' + el.id : el.tagName.toLowerCase()) + ' ' + el.scrollWidth + '>' + el.clientWidth);
     }
   });
-  return { win: W, docW: d.documentElement.scrollWidth, bodyW: d.body.scrollWidth, offenders: bad.slice(0, 12), count: bad.length };
+  return { win: W, docW: d.documentElement.scrollWidth, offenders: bad.slice(0, 8), count: bad.length };
 }
-var fr = document.getElementById('fr');
+var fr = document.getElementById('fr'), rep = {};
+function step2(w, d) {
+  rep.hit = scan(w, d);
+  rep.hitCards = d.querySelectorAll('#tab-hit .hcard').length;
+  rep.chipsWrap = getComputedStyle(d.querySelector('#tab-hit .chips')).flexWrap;
+  rep.tabbar = Array.prototype.map.call(d.querySelectorAll('nav.tabbar button'), function (x) {
+    var r = x.getBoundingClientRect(); return Math.round(r.width);
+  }).join(',');
+  var nav = d.querySelector('nav.tabbar');
+  rep.navScroll = nav.scrollWidth + '/' + nav.clientWidth;
+  // furigana toggle
+  d.getElementById('furibtn').click();
+  var kn = d.querySelector('#tab-hit .hitkana');
+  rep.furiOffHidesKana = kn ? getComputedStyle(kn).display === 'none' : 'no-kana';
+  d.getElementById('furibtn').click();
+  // quiz: first option
+  var qb = d.querySelector('#tab-hit [data-hq]');
+  rep.quizBtn = !!qb;
+  if (qb) qb.click();
+  setTimeout(function () {
+    rep.quizVerdict = (d.querySelector('#tab-hit .verdict') || {}).textContent || null;
+    rep.quizExp = !!d.querySelector('#tab-hit .exp');
+    rep.afterQuiz = scan(w, d);
+    // memorize toggle
+    var mb = d.querySelector('#tab-hit [data-hd]');
+    if (mb) mb.click();
+    setTimeout(function () {
+      rep.stat = (d.getElementById('hstat') || {}).textContent;
+      // grammar section
+      var gc = d.querySelector('#tab-hit [data-hsec="bunpou"]');
+      if (gc) gc.click();
+      setTimeout(function () {
+        rep.bunpou = scan(w, d);
+        rep.bunpouCards = d.querySelectorAll('#tab-hit .hcard').length;
+        rep.bunpouAudio = d.querySelectorAll('#tab-hit [data-hg]').length;
+        document.getElementById('out').textContent = JSON.stringify(rep, null, 1);
+        document.title = 'DONE';
+      }, 500);
+    }, 400);
+  }, 500);
+}
 fr.onload = function () {
   var w = fr.contentWindow, d = fr.contentDocument;
-  var rep = {};
   rep.home = scan(w, d);
-  // 적중 tab
   var b = d.getElementById('nb-hit');
   if (b) b.click();
-  setTimeout(function () {
-    rep.hit = scan(w, d);
-    rep.hitCards = d.querySelectorAll('#tab-hit .hcard').length;
-    rep.tabbar = Array.prototype.map.call(d.querySelectorAll('nav.tabbar button'), function (x) {
-      var r = x.getBoundingClientRect();
-      return x.textContent + ':' + Math.round(r.width) + 'px@' + Math.round(r.left);
-    }).join(' | ');
-    var nav = d.querySelector('nav.tabbar');
-    rep.navW = Math.round(nav.getBoundingClientRect().width) + '/' + nav.scrollWidth;
-    // quiz + toggle check
-    var qb = d.querySelector('#tab-hit [data-hq]');
-    if (qb) qb.click();
-    setTimeout(function () {
-      rep.quizRevealed = !!d.querySelector('#tab-hit .verdict');
-      rep.quizExp = (d.querySelector('#tab-hit .exp') || {}).textContent ? 'yes' : 'no';
-      rep.afterQuiz = scan(w, d);
-      rep.stat = (d.getElementById('hstat') || {}).textContent;
-      document.getElementById('out').textContent = JSON.stringify(rep, null, 1);
-      document.title = 'DONE ' + rep.hit.count + '/' + rep.hit.docW;
-    }, 400);
-  }, 700);
+  setTimeout(function () { step2(w, d); }, 800);
 };
 </script>
 </body></html>
