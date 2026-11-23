@@ -6,7 +6,7 @@ iframe{width:390px;height:844px;border:1px solid #999}
 pre{white-space:pre-wrap;font-size:12px}</style></head>
 <body>
 <pre id="out">loading…</pre>
-<iframe id="fr" src="../index.html?v=hit2"></iframe>
+<iframe id="fr"></iframe>
 <script>
 function scan(w, d) {
   var W = w.innerWidth, bad = [];
@@ -24,6 +24,7 @@ function scan(w, d) {
   return { win: W, docW: d.documentElement.scrollWidth, offenders: bad.slice(0, 8), count: bad.length };
 }
 var fr = document.getElementById('fr'), rep = {};
+fr.src = '../index.html?v=' + Date.now();
 function step2(w, d) {
   rep.hit = scan(w, d);
   rep.hitCards = d.querySelectorAll('#tab-hit .hcard').length;
