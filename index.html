@@ -1847,9 +1847,11 @@ function syBind(root) {
     return out;
   }
   function hCounts() {
-    var dW = cnt(hwStore()), dG = cnt(hgStore()), dQ = cnt(hqStore()), ok = 0;
-    HIT.quiz.forEach(function (q) { if (typeof hqStore()[q.id] === 'number' && hqStore()[q.id] - 1 === q.a) ok++; });
-    return { dw: dW, dg: dG, dq: dQ, ok: ok, tw: HIT.words.length, tg: HIT.gram.length + HIT.listen.length, tq: HIT.quiz.length };
+    var w = hwStore(), g = hgStore(), q = hqStore(), ok = 0, dw = 0, dg = 0, dq = 0;
+    HIT.words.forEach(function (x) { if (w[x.id]) dw++; });
+    HIT.gram.concat(HIT.listen).forEach(function (x) { if (g[x.id]) dg++; });
+    HIT.quiz.forEach(function (x) { if (typeof q[x.id] === 'number') { dq++; if (q[x.id] - 1 === x.a) ok++; } });
+    return { dw: dw, dg: dg, dq: dq, ok: ok, tw: HIT.words.length, tg: HIT.gram.length + HIT.listen.length, tq: HIT.quiz.length };
   }
   function hTs(t) { return t ? '<span>' + esc(t) + '</span>' : '<span></span>'; }
   function hitTip(t) {
