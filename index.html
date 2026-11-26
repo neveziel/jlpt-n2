@@ -56,7 +56,9 @@ header{
 .hprog .lbl{font-size:11px;color:var(--sub)}
 .bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
 .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:99px;transition:width .35s ease}
-.hrow2{justify-content:flex-end;gap:7px;margin-top:6px;font-size:11px;color:var(--sub);letter-spacing:-.1px}
+.hrow2{justify-content:flex-end;flex-wrap:wrap;gap:7px;margin-top:6px;font-size:11px;color:var(--sub);letter-spacing:-.1px}
+.kowrap{display:none;align-items:center;gap:7px}
+body.tabkako .kowrap{display:inline-flex}
 .sw{position:relative;flex:0 0 auto;width:34px;height:19px;border-radius:99px;border:0;padding:0;background:var(--line);transition:background .2s}
 .sw i{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.35);transition:left .2s}
 .sw.on{background:var(--teal)}
@@ -305,6 +307,9 @@ nav.tabbar button.on{color:var(--accent)}
 .kpara{margin:0 0 10px;line-height:1.95;font-size:15px}
 .kpass{border-left:3px solid var(--accent)}
 .kcard .tagline span:first-child{font-weight:750;color:var(--ink)}
+.kkoBtn{margin-left:auto;border:1px solid var(--line);background:var(--bg);color:var(--sub);border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;line-height:1.5;white-space:nowrap}
+.kkoBtn:active{transform:scale(.97)}
+.kkoBtn.on{background:var(--teal-soft);color:var(--teal);border-color:transparent}
 .tg{font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:0 3px;
   border-bottom:2px solid var(--accent)}
 body.furi .kcard .opt{line-height:1.9}
@@ -319,6 +324,8 @@ body.furi .kcard .opt{line-height:1.9}
   <div class="bar"><i id="hbar"></i></div>
   <div class="hrow hrow2"><button class="hbtn" id="syncbtn">🔄 진도 동기화</button><span>예문 후리가나</span>
     <button class="sw on" id="furibtn" aria-pressed="true" aria-label="예문 후리가나 켜기/끄기"><i></i></button>
+    <span class="kowrap" id="kowrap"><span>한글 해석</span>
+      <button class="sw on" id="kobtn" aria-pressed="true" aria-label="기출 한글 해석 켜기/끄기"><i></i></button></span>
   </div>
 </header>
 <main>
@@ -635,6 +642,7 @@ body.furi .kcard .opt{line-height:1.9}
   var rendered = {};
   function go(id) {
     stopSound();
+    if (document.body && document.body.classList) document.body.classList.toggle('tabkako', id === 'kako');
     TABS.forEach(function (t) {
       $('tab-' + t[0]).classList.toggle('on', t[0] === id);
       $('nb-' + t[0]).classList.toggle('on', t[0] === id);
@@ -1628,6 +1636,14 @@ function syBind(root) {
       save(); applyFuri();
       toast(furiOn() ? '예문 후리가나 켜짐' : '예문 후리가나 꺼짐 (한자만)');
     });
+    on($('kobtn'), 'click', function () {
+      S.kakoKo = !koOn();
+      KKO = {};
+      save(); koPaint();
+      toast(koOn() ? '기출 한글 해석 켜짐' : '기출 한글 해석 꺼짐');
+      if (document.body.classList.contains('tabkako')) keepScroll(function () { renderKako(); });
+    });
+    koPaint();
     applyFuri();
     paintHeader();
     go('home');
@@ -1637,6 +1653,16 @@ function syBind(root) {
   var KAKO = window.__KAKO__ || { sets: [] };
   var KF = { set: (KAKO.sets[0] || {}).id, sec: 'all', limit: 24 };
   function koOn() { return S.kakoKo !== false; }
+  var KKO = {};
+  function kkoShow(id) { var o = KKO[id]; return typeof o === 'boolean' ? o : koOn(); }
+  function koPaint() {
+    var b = $('kobtn');
+    if (!b) return;
+    var on = koOn();
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.title = on ? '기출 한글 해석 끄기' : '기출 한글 해석 켜기';
+  }
   function kProgress(s, st) {
     var done = 0, ok = 0;
     s.items.forEach(function (it) { if (typeof st[it.id] === 'number') { done++; if (st[it.id] - 1 === it.a) ok++; } });
@@ -1683,8 +1709,10 @@ function syBind(root) {
   function kCard(it, st) {
     var raw = st[it.id];
     var ans = typeof raw === 'number' ? raw - 1 : null;
-    var h = '<div class="card kcard" id="k-' + it.id + '">'
-      + '<div class="tagline"><span>' + esc(it.part) + '</span><span>#' + (it.no != null ? it.no : (it.num > 200 ? (it.num > 300 ? it.num - 300 : it.num - 200) : it.num)) + '</span></div>';
+    var kmeta = '<div class="tagline"><span>' + esc(it.part) + '</span><span>#' + (it.no != null ? it.no : (it.num > 200 ? (it.num > 300 ? it.num - 300 : it.num - 200) : it.num)) + '</span>'
+      + (it.qko && !koOn() ? '<button class="kkoBtn' + (kkoShow(it.id) ? ' on' : '') + '" data-kk="' + it.id + '" aria-pressed="' + (kkoShow(it.id) ? 'true' : 'false') + '">🇰🇷 해석</button>' : '')
+      + '</div>';
+    var h = '<div class="card kcard" id="k-' + it.id + '">' + kmeta;
     if (it.sec === 'choukai') {
       if (it.intro) h += '<div class="muted small jp" style="margin-bottom:6px">' + kruby(it.intro) + '</div>';
       var inst = it.type === '즉시 응답';
@@ -1702,7 +1730,7 @@ function syBind(root) {
     } else {
       h += '<div class="jp kq">' + kruby(it.q) + '</div>';
     }
-    if (it.qko && koOn()) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
+    if (it.qko && kkoShow(it.id)) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
     if (it.full) h += '<div class="trans" style="margin-bottom:10px"><b>완성 문장</b><span class="jp">' + kruby(it.full) + '</span></div>';
     h += it.opts.map(function (o, i) {
       var cls = 'opt';
@@ -1729,11 +1757,20 @@ function syBind(root) {
     Array.prototype.forEach.call(host.querySelectorAll('[data-kc]'), function (b) {
       b.addEventListener('click', function () { KF.sec = b.getAttribute('data-kc'); KF.limit = 24; renderKako(); });
     });
-    Array.prototype.forEach.call(host.querySelectorAll('[data-kko]'), function (b) {
+    Array.prototype.forEach.call(host.querySelectorAll('[data-kk]'), function (b) {
       b.addEventListener('click', function () {
-        S.kakoKo = !koOn();
-        save();
-        keepScroll(function () { renderKako(); });
+        var id = b.getAttribute('data-kk');
+        KKO[id] = !kkoShow(id);
+        var s = kset(), it = null;
+        s.items.forEach(function (x) { if (x.id === id) it = x; });
+        var card = document.getElementById('k-' + id);
+        if (it && card) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = kCard(it, kStore());
+          var fresh = tmp.firstChild;
+          card.parentNode.replaceChild(fresh, card);
+          bindKako(fresh);
+        }
       });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-ka]'), function (b) {
@@ -1800,8 +1837,6 @@ function syBind(root) {
       var n = c[0] === 'all' ? s.items.length : s.items.filter(function (it) { return it.sec === c[0]; }).length;
       return '<button class="chip' + (KF.sec === c[0] ? ' on' : '') + '" data-kc="' + c[0] + '">' + c[1] + ' <span class="small">' + n + '</span></button>';
     }).join('');
-    var koChip = '<div class="chips"><button class="chip' + (koOn() ? ' on' : '') + '" data-kko="1">'
-      + (koOn() ? '🇰🇷 한글 해석 ON' : '🇰🇷 한글 해석 OFF') + ' <span class="small">밑줄 해석·요지</span></button></div>';
     var list = s.items.filter(function (it) { return KF.sec === 'all' || it.sec === KF.sec; });
     var done = 0, ok = 0;
     s.items.forEach(function (it) {
@@ -1811,7 +1846,6 @@ function syBind(root) {
       + '<div class="note jp" style="margin-bottom:10px">문제 지문은 일본어국제교육지원협회·국제교류기금 공개 자료(2012年7月·2018 公式問題集은 공식 문제집·정답표 대조, 2025年7月 시험은 공개 복원본)를 개인 학습용으로 옮긴 것입니다.</div>'
       + '<div class="chips">' + setChips + '</div>'
       + '<div class="chips">' + secChips + '</div>'
-      + koChip
       + '<div class="qmeta"><span id="kdone">' + done + ' / ' + s.items.length + ' 풀이</span><span id="kstat">정답 ' + ok
       + ' · 정답률 ' + (done ? Math.round(ok / done * 100) : 0) + '%</span></div>'
       + '<div class="bar" style="margin:6px 0 14px"><i id="kbar" style="width:'
