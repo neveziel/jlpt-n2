@@ -1843,7 +1843,7 @@ function syBind(root) {
       if (typeof st[it.id] === 'number') { done++; if (st[it.id] - 1 === it.a) ok++; }
     });
     var html = '<h2>기출문제</h2><p class="lead">' + esc(s.sub) + '</p>'
-      + '<div class="note jp" style="margin-bottom:10px">문제 지문은 일본어국제교육지원협회·국제교류기금 공개 자료(2012年7月·2018 公式問題集은 공식 문제집·정답표 대조, 2025年7月 시험은 공개 복원본)를 개인 학습용으로 옮긴 것입니다.</div>'
+      + '<div class="note jp" style="margin-bottom:10px">문제 지문은 일본어국제교육지원협회·국제교류기금 공개 자료(2012年7月·2018 公式問題集은 공식 문제집·정답표 대조, 2025年7月 시험은 공개 복원본)를 개인 학습용으로 옮긴 것입니다.<br>한자 문제(問題1~3)의 밑줄·보기는 정답이 드러나지 않도록 후리가나를 표시하지 않습니다.</div>'
       + '<div class="chips">' + setChips + '</div>'
       + '<div class="chips">' + secChips + '</div>'
       + '<div class="qmeta"><span id="kdone">' + done + ' / ' + s.items.length + ' 풀이</span><span id="kstat">정답 ' + ok
