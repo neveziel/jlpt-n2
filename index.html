@@ -102,6 +102,12 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--ink)}
 .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--sub);
   border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;white-space:nowrap}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 기출 이어풀기 */
+.kjump{display:flex;width:100%;gap:8px;align-items:center;justify-content:center;margin:0 0 10px;padding:10px 12px;border-radius:12px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:700}
+.kjump:active{transform:scale(.99)}
+.kjump span{font-weight:600;color:var(--sub);font-size:13px}
+.kcard.kflash{animation:kflash 1.9s ease-out 1;scroll-margin-top:110px}
+@keyframes kflash{0%{box-shadow:0 0 0 3px var(--accent);background:var(--accent-soft)}70%{box-shadow:0 0 0 3px var(--accent);background:var(--accent-soft)}100%{box-shadow:var(--shadow);background:var(--card)}}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);
@@ -708,9 +714,9 @@ body.furi .script .sp span.lko{line-height:1.7}
     if (id === 'reading') renderReading();
     if (id === 'listening') renderListening();
     if (id === 'hit') renderHit();
-    if (id === 'kako') renderKako();
+    if (id === 'kako') kOpen();
     if (id === 'tips') renderTips();
-    window.scrollTo(0, 0);
+    if (id !== 'kako') window.scrollTo(0, 0);
   }
 
   /* ---------- HOME ---------- */
@@ -1775,6 +1781,148 @@ function syBind(root) {
   /* ---------- 기출문제 (past papers) ---------- */
   var KAKO = window.__KAKO__ || { sets: [] };
   var KF = { set: (KAKO.sets[0] || {}).id, sec: 'all', limit: 24 };
+
+  /* ---------- 기출 이어풀기 (마지막 회차·영역·문항 기억) ---------- */
+  var KPOS_KEY = 'jlptn2.kako.pos.v1';
+  function kPosGet() {
+    try {
+      var r = localStorage.getItem(KPOS_KEY);
+      var o = r ? JSON.parse(r) : null;
+      return (o && o.id && o.set) ? o : null;
+    } catch (e) { return null; }
+  }
+  function kSetOf(id) {
+    for (var i = 0; i < KAKO.sets.length; i++) if (KAKO.sets[i].id === id) return KAKO.sets[i];
+    return null;
+  }
+  function kNumOf(it) {
+    return it.no != null ? it.no : (it.num > 300 ? it.num - 300 : (it.num > 200 ? it.num - 200 : it.num));
+  }
+  function kShortLabel(s) {
+    if (!s) return '';
+    if (s.id === '2018b') return '2018②';
+    if (s.id === '2025a') return '2025-07';
+    if (s.id === '2012a') return '2012-07';
+    return s.label || s.id;
+  }
+  function kSecName(sec) {
+    var m = { all: '전체', moji: '문자·어휘', bunpou: '문법', dokkai: '독해', choukai: '청해', wrong: '오답노트' };
+    return m[sec] || '';
+  }
+  function kStorePos(id) {
+    var e = kEntry(id);
+    if (!e) return;
+    var pos = { set: e.s.id, sec: (KF.sec === 'wrong' ? 'all' : KF.sec), id: id, ts: Date.now() };
+    try { localStorage.setItem(KPOS_KEY, JSON.stringify(pos)); } catch (err) { }
+  }
+  function kPosLabel(p) {
+    if (!p) return '';
+    var s = kSetOf(p.set), e = kEntry(p.id);
+    if (!s || !e) return '';
+    return kShortLabel(s) + ' · ' + kSecName(p.sec || 'all') + ' #' + kNumOf(e.it);
+  }
+  /* index of the item inside the filtered list (same order renderKako uses) */
+  function kIndexOf(setId, sec, id) {
+    var s = kSetOf(setId);
+    if (!s) return -1;
+    var n = 0;
+    for (var i = 0; i < s.items.length; i++) {
+      var it = s.items[i];
+      if (sec !== 'all' && it.sec !== sec) continue;
+      if (it.id === id) return n;
+      n++;
+    }
+    return -1;
+  }
+  function kLimitFor(p) {
+    var idx = kIndexOf(p.set, p.sec || 'all', p.id);
+    if (idx < 0 && (p.sec || 'all') !== 'all') idx = kIndexOf(p.set, 'all', p.id);
+    if (idx >= 0) KF.limit = Math.max(KF.limit, Math.ceil((idx + 1) / 24) * 24);
+  }
+  var kJumping = 0;
+  function kScrollToCard(id) {
+    var el = document.getElementById('k-' + id);
+    if (!el) return false;
+    /* 이동 중에는 스크롤 추적이 '풀던 문제' 기록을 중간 카드로 덮어쓰지 않는다 */
+    kJumping = Date.now() + 700;
+    try { el.scrollIntoView({ block: 'center' }); }
+    catch (e) { el.scrollIntoView(); }
+    el.classList.remove('kflash');
+    void el.offsetWidth;
+    el.classList.add('kflash');
+    clearTimeout(kScrollToCard._t);
+    kScrollToCard._t = setTimeout(function () { el.classList.remove('kflash'); }, 2200);
+    return true;
+  }
+  /* 기출 탭 진입: 마지막 회차·영역으로 복원하고 그 문항으로 이동 */
+  function kOpen() {
+    var p = kPosGet();
+    if (p && kSetOf(p.set) && kEntry(p.id)) {
+      var sec = p.sec || 'all';
+      if (sec !== 'all' && kIndexOf(p.set, sec, p.id) < 0) sec = 'all';
+      KF.set = p.set;
+      KF.sec = sec;
+      kLimitFor(p);
+      renderKako();
+      setTimeout(function () { kScrollToCard(p.id); }, 60);
+      return;
+    }
+    renderKako();
+  }
+  /* 📍 배너: 다른 필터를 보고 있어도 저장된 회차·영역으로 바꿔 그 문항으로 점프 */
+  function kJump() {
+    var p = kPosGet();
+    if (!p) return;
+    var e = kEntry(p.id);
+    if (!e) { toast('이어풀 문제를 찾지 못했어요'); return; }
+    var sec = p.sec || 'all';
+    if (sec !== 'all' && kIndexOf(p.set, sec, p.id) < 0) sec = 'all';
+    var same = (KF.set === p.set && KF.sec === sec && document.getElementById('k-' + p.id));
+    KF.set = p.set;
+    KF.sec = sec;
+    kLimitFor(p);
+    if (!same) renderKako();
+    setTimeout(function () { kScrollToCard(p.id); }, 30);
+  }
+  /* 선택된 칩(예: 청해)이 잘리지 않게 가로 칩 줄을 맞춘다 */
+  function kChipScroll() {
+    var rows = document.querySelectorAll('#tab-kako .chips');
+    for (var i = 0; i < rows.length; i++) {
+      var c = rows[i].querySelector('.chip.on');
+      if (!c) continue;
+      var cr = c.getBoundingClientRect(), rr = rows[i].getBoundingClientRect();
+      if (cr.right > rr.right - 4) rows[i].scrollLeft += (cr.right - rr.right) + 8;
+      else if (cr.left < rr.left + 4) rows[i].scrollLeft -= (rr.left - cr.left) + 8;
+    }
+  }
+  /* 스크롤해 보던 문항을 기억한다 */
+  var kScrollAt = 0;
+  function kTrackScroll() {
+    if (!document.body.classList.contains('tabkako')) return;
+    var now = Date.now();
+    if (now < kJumping) return;
+    if (now - kScrollAt < 300) return;
+    kScrollAt = now;
+    var cards = document.querySelectorAll('#tab-kako .kcard');
+    var best = null, bestD = 1e9;
+    for (var i = 0; i < cards.length; i++) {
+      var r = cards[i].getBoundingClientRect();
+      if (r.bottom < 90 || r.top > window.innerHeight) continue;
+      var d = Math.abs(r.top - 130);
+      if (d < bestD) { bestD = d; best = cards[i]; }
+    }
+    if (!best || best.id.indexOf('k-') !== 0) return;
+    var id = best.id.slice(2);
+    /* 다른 회차·영역으로 필터를 바꾼 뒤의 스크롤은 '풀던 문제'를 덮어쓰지 않는다 */
+    var p = kPosGet();
+    if (p) {
+      var e = kEntry(id);
+      var sec = KF.sec === 'wrong' ? 'all' : KF.sec;
+      if (!e || e.s.id !== p.set || sec !== (p.sec || 'all')) return;
+    }
+    kStorePos(id);
+  }
+  window.addEventListener('scroll', kTrackScroll, { passive: true });
   function koOn() { return S.kakoKo !== false; }
   var KKO = {};
   function kkoShow(id) { var o = KKO[id]; return typeof o === 'boolean' ? o : koOn(); }
@@ -1955,6 +2103,7 @@ function syBind(root) {
     Array.prototype.forEach.call(host.querySelectorAll('[data-kw]'), function (b) {
       b.addEventListener('click', function () {
         var id = b.getAttribute('data-kw'), w = wStore();
+        kStorePos(id);
         if (w[id]) { delete w[id]; toast('오답노트에서 뺐어요'); }
         else { w[id] = 1; toast('오답노트에 담았어요'); }
         save();
@@ -1967,6 +2116,7 @@ function syBind(root) {
       b.addEventListener('click', function () {
         var id = b.getAttribute('data-kk');
         KKO[id] = !kkoShow(id);
+        kStorePos(id);
         kRepaint(id);
       });
     });
@@ -1978,6 +2128,7 @@ function syBind(root) {
         var e = kEntry(id);
         if (!e) return;
         st[id] = i + 1;
+        kStorePos(id);
         var w = wStore(), wasIn = !!w[id];
         if (i === e.it.a) { if (wasIn) delete w[id]; }
         else { w[id] = 1; }
@@ -1996,6 +2147,7 @@ function syBind(root) {
       b.addEventListener('click', function () {
         var id = b.getAttribute('data-krr'), st = kStore();
         delete st[id];
+        kStorePos(id);
         save();
         kPaintWrong();
         kRepaint(id);
@@ -2006,8 +2158,14 @@ function syBind(root) {
       b.addEventListener('click', function () {
         var e = kEntry(b.getAttribute('data-kp'));
         if (!e || !e.it.audio) return;
+        kStorePos(e.it.id);
         toggleMp3('audio/' + e.it.audio, b, function () {
-          speakLines(e.it.lines.map(function (l) { return { s: l.r, t: l.t }; }));
+          /* MP3 실패 시 폴백도 실제 시험처럼 보기 1·2·3까지 읽는다 */
+          var fb = e.it.lines.map(function (l) { return { s: l.r, t: l.t }; });
+          if (e.it.type === '즉시 응답' && e.it.opts) {
+            e.it.opts.forEach(function (o, i) { fb.push({ s: 'narr', t: (i + 1) + '. ' + o }); });
+          }
+          speakLines(fb);
         });
       });
     });
@@ -2033,6 +2191,7 @@ function syBind(root) {
         var id = b.getAttribute('data-kr');
         if (!S.ksc) S.ksc = {};
         S.ksc[id] = !S.ksc[id];
+        kStorePos(id);
         save();
         keepScroll(function () { renderKako(); });
       });
@@ -2092,6 +2251,7 @@ function syBind(root) {
       + '<div class="chips">' + setChips + '</div>'
       + '<div class="chips">' + secChips + '</div>'
       + '<div class="chips">' + wrongChip + '</div>'
+      + (kPosGet() ? '<button class="kjump" id="kjump"><b>📍 이어풀기</b><span>' + esc(kPosLabel(kPosGet())) + '</span></button>' : '')
       + '<div class="qmeta"><span id="kdone">' + (KF.sec === 'wrong' ? '오답 ' + list.length + '문항 · ' + done + ' 풀이' : done + ' / ' + s.items.length + ' 풀이') + '</span><span id="kstat">정답 ' + ok
       + ' · 정답률 ' + (done ? Math.round(ok / done * 100) : 0) + '%</span></div>'
       + '<div class="bar" style="margin:6px 0 14px"><i id="kbar" style="width:'
@@ -2120,7 +2280,11 @@ function syBind(root) {
     }
     html += '<button class="btn" id="kreset" style="width:100%;margin:4px 0 12px">' + esc(s.label) + ' 답 초기화</button>';
     $('tab-kako').innerHTML = html;
+    /* 다시 그린 직후의 스크롤 변화는 사용자의 스크롤이 아니므로 기록하지 않는다 */
+    kJumping = Math.max(kJumping, Date.now() + 600);
     bindKako();
+    kChipScroll();
+    on($('kjump'), 'click', kJump);
   }
 
   /* ---------- 🎯 적중특강 (시원스쿨 일본어 · 유미희) ---------- */
@@ -2356,6 +2520,7 @@ function syBind(root) {
     listeningItem: lById, playItem: playItem, playGrammar: playGrammar, playVocabEx: playVocabEx,
     playVocabWord: playVocabWord,
     plain: plain, ruby: ruby, renderKako: renderKako, kako: function () { return KAKO; }, ios: function () { return IOS; },
+    kf: function () { return KF; }, kpos: kPosGet, kentry: kEntry,
     renderHit: renderHit, hit: function () { return HIT; },
     setFuri: function (v) { S.furi = !!v; applyFuri(); }
   };
