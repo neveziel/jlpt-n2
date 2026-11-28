@@ -107,6 +107,11 @@ h3{font-size:15px;margin:18px 0 8px;color:var(--ink)}
 .kjump:active{transform:scale(.99)}
 .kjump span{font-weight:600;color:var(--sub);font-size:13px}
 .kcard.kflash{animation:kflash 1.9s ease-out 1;scroll-margin-top:110px}
+.ktwin{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;background:var(--accent-soft);border-radius:12px;padding:8px 10px;margin:0 0 10px;font-size:12px;line-height:1.55}
+.ktwin b{font-weight:800;color:var(--accent)}
+.ktwin span{color:var(--sub);font-weight:600}
+.kcard .tagline .ktwinchip{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.kqbox{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:9px 11px}
 @keyframes kflash{0%{box-shadow:0 0 0 3px var(--accent);background:var(--accent-soft)}70%{box-shadow:0 0 0 3px var(--accent);background:var(--accent-soft)}100%{box-shadow:var(--shadow);background:var(--card)}}
 
 /* buttons */
@@ -1821,6 +1826,29 @@ function syBind(root) {
     if (!s || !e) return '';
     return kShortLabel(s) + ' · ' + kSecName(p.sec || 'all') + ' #' + kNumOf(e.it);
   }
+  /* 一つの会話に二問(질문1·질문2)이 붙는 문제인지 — 같은 대화·같은 보기, 다른 질문 */
+  function kTwin(it) {
+    /* 후리가나 표기({質問|しつもん})를 걷어낸 뒤 '質問1/質問2'를 찾는다 */
+    var qp = plain(it.q || '');
+    if (it.sec !== 'choukai' || !/質問\s*[１1２2]/.test(qp)) return null;
+    var e = kEntry(it.id);
+    if (!e || !it.lines || !it.lines.length) return null;
+    var myNo = /質問\s*[１1]/.test(qp) ? 1 : 2;
+    var twins = [];
+    e.s.items.forEach(function (x) {
+      if (x.id === it.id || x.sec !== 'choukai' || !x.q) return;
+      if (!/質問\s*[１1２2]/.test(plain(x.q))) return;
+      if ((x.intro || '') !== (it.intro || '')) return;
+      if (!x.lines || x.lines.length !== it.lines.length) return;
+      for (var i = 0; i < it.lines.length; i++) {
+        if ((x.lines[i] || {}).t !== it.lines[i].t) return;
+      }
+      twins.push(x);
+    });
+    if (!twins.length) return null;
+    twins.sort(function (a, b) { return a.num - b.num; });
+    return { mine: myNo, total: twins.length + 1, other: twins[0] };
+  }
   /* index of the item inside the filtered list (same order renderKako uses) */
   function kIndexOf(setId, sec, id) {
     var s = kSetOf(setId);
@@ -2034,17 +2062,27 @@ function syBind(root) {
       return '<div class="sp"><b>' + esc(l.r) + '</b><span class="jp">' + kruby(l.t) + lk + '</span></div>';
     }).join('') + '</div>';
   }
+  function kSameKo(a, b) {
+    var n = function (s) { return String(s || '').replace(/[\s.,!?…·:;'"’”~\-—]/g, ''); };
+    return !!a && !!b && n(a) === n(b);
+  }
   function kCard(it, st, setLabel) {
     var raw = st[it.id];
     var ans = typeof raw === 'number' ? raw - 1 : null;
     var wst = wStore(), inNote = !!wst[it.id];
     var ko = kkoShow(it.id);
+    var twin = kTwin(it);
     var kmeta = '<div class="tagline"><span>' + esc(it.part) + '</span><span>#' + (it.no != null ? it.no : (it.num > 200 ? (it.num > 300 ? it.num - 300 : it.num - 200) : it.num)) + '</span>'
       + (setLabel ? '<span>' + esc(setLabel) + '</span>' : '')
+      + (twin ? '<span class="ktwinchip">같은 대화 · 질문 ' + twin.mine + '/' + twin.total + '</span>' : '')
       + '<button class="kwBtn' + (inNote ? ' on' : '') + '" data-kw="' + it.id + '" aria-pressed="' + (inNote ? 'true' : 'false') + '">' + (inNote ? '✓ 오답 해제' : '📌 오답') + '</button>'
       + (kHasKo(it) && !koOn() ? '<button class="kkoBtn' + (kkoShow(it.id) ? ' on' : '') + '" data-kk="' + it.id + '" aria-pressed="' + (kkoShow(it.id) ? 'true' : 'false') + '">🇰🇷 해석</button>' : '')
       + '</div>';
     var h = '<div class="card kcard" id="k-' + it.id + '">' + kmeta;
+    if (twin) {
+      h += '<div class="ktwin">🔗 <b>같은 대화 · 질문 ' + twin.mine + '/' + twin.total + '</b>'
+        + '<span>#' + kNumOf(twin.other) + ' 문항과 같은 대화입니다. 대화와 보기 4개는 같고 질문만 다르니, 두 문항을 이어서 푸세요.</span></div>';
+    }
     if (it.sec === 'choukai') {
       if (it.intro) h += '<div class="muted small jp" style="margin-bottom:6px">' + kruby(it.intro)
         + (ko && it.introko ? '<span class="iko">' + esc(it.introko) + '</span>' : '') + '</div>';
@@ -2059,14 +2097,15 @@ function syBind(root) {
       h += '</div>';
       if (!inst && S.ksc && S.ksc[it.id]) h += kScript(it, ko);
       if (it.q) {
-        h += '<div class="jp" style="font-weight:650;line-height:1.9;margin-top:' + (it.prompt ? '8px' : '0') + '">' + kruby(it.q)
+        h += '<div class="' + (twin ? 'kqbox ' : '') + 'jp" style="font-weight:650;line-height:1.9;margin-top:' + (it.prompt ? '8px' : '0') + '">' + kruby(it.q)
           + (ko && it.qtr ? '<span class="iko">' + esc(it.qtr) + '</span>' : '') + '</div>';
       }
     } else {
       h += '<div class="jp kq">' + kruby(it.q) + '</div>'
         + '<div class="kplay"><button class="btn ghost sm" data-kqa="' + it.id + '">🔊 문제 듣기</button></div>';
     }
-    if (it.qko && kkoShow(it.id)) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
+    /* qko가 질문 번역(qtr)과 같은 말이면 두 번 보여 주지 않는다 */
+    if (it.qko && kkoShow(it.id) && !kSameKo(it.qko, it.qtr)) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
     if (it.full) h += '<div class="trans" style="margin-bottom:10px"><b>완성 문장</b><span class="jp">' + kruby(it.full) + '</span></div>';
     h += it.opts.map(function (o, i) {
       var cls = 'opt';
