@@ -2023,7 +2023,8 @@ function syBind(root) {
   }
   function kqSay(it) {
     var is6 = /^問題6/.test(it.part || '');
-    var q = (it.star && it.full) ? kSay(it.full) : kSay(it.q);
+    var solved = typeof kStore()[it.id] === 'number';
+    var q = (it.star && it.full && solved) ? kSay(it.full) : kSay(it.q);
     if (is6 && q && q.slice(-1) !== '。') q += '。';
     var parts = [];
     if (it.intro) parts.push(kSay(it.intro));
@@ -2031,6 +2032,9 @@ function syBind(root) {
     if (q) parts.push(q);
     if (is6 && it.opts && it.opts.length) {
       parts.push(it.opts.map(function (o) { return kSay(o).replace(/。$/, ''); }).join('。') + '。');
+    }
+    if (it.star && !solved && it.opts && it.opts.length) {
+      parts.push(it.opts.map(function (o, i) { return (i + 1) + '番 ' + kSay(o).replace(/。$/, ''); }).join('、') + '。');
     }
     return parts.join(' ');
   }
@@ -2081,12 +2085,14 @@ function syBind(root) {
     var ans = typeof raw === 'number' ? raw - 1 : null;
     var wst = wStore(), inNote = !!wst[it.id];
     var ko = kkoShow(it.id);
+    /* 問題8 배열은 qko 도 완성 문장의 번역이라, 채점 전에는 해석도 숨긴다 */
+    var koHide = !!(it.full && typeof ans !== 'number');
     var twin = kTwin(it);
     var kmeta = '<div class="tagline"><span>' + esc(it.part) + '</span><span>#' + (it.no != null ? it.no : (it.num > 200 ? (it.num > 300 ? it.num - 300 : it.num - 200) : it.num)) + '</span>'
       + (setLabel ? '<span>' + esc(setLabel) + '</span>' : '')
       + (twin ? '<span class="ktwinchip">같은 대화 · 질문 ' + twin.mine + '/' + twin.total + '</span>' : '')
       + '<button class="kwBtn' + (inNote ? ' on' : '') + '" data-kw="' + it.id + '" aria-pressed="' + (inNote ? 'true' : 'false') + '">' + (inNote ? '✓ 오답 해제' : '📌 오답') + '</button>'
-      + (kHasKo(it) && !koOn() ? '<button class="kkoBtn' + (kkoShow(it.id) ? ' on' : '') + '" data-kk="' + it.id + '" aria-pressed="' + (kkoShow(it.id) ? 'true' : 'false') + '">🇰🇷 해석</button>' : '')
+      + (kHasKo(it) && !koOn() && !koHide ? '<button class="kkoBtn' + (kkoShow(it.id) ? ' on' : '') + '" data-kk="' + it.id + '" aria-pressed="' + (kkoShow(it.id) ? 'true' : 'false') + '">🇰🇷 해석</button>' : '')
       + '</div>';
     var h = '<div class="card kcard" id="k-' + it.id + '">' + kmeta;
     if (twin) {
@@ -2115,8 +2121,9 @@ function syBind(root) {
         + '<div class="kplay"><button class="btn ghost sm" data-kqa="' + it.id + '">🔊 문제 듣기</button></div>';
     }
     /* qko가 질문 번역(qtr)과 같은 말이면 두 번 보여 주지 않는다 */
-    if (it.qko && kkoShow(it.id) && !kSameKo(it.qko, it.qtr)) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
-    if (it.full) h += '<div class="trans" style="margin-bottom:10px"><b>완성 문장</b><span class="jp">' + kruby(it.full) + '</span></div>';
+    if (it.qko && kkoShow(it.id) && !koHide && !kSameKo(it.qko, it.qtr)) h += '<div class="muted small kko" style="margin:4px 0 10px">' + esc(it.qko) + '</div>';
+    /* 완성 문장은 問題8 배열의 정답이라, 보기를 골라 채점된 뒤에만 보여 준다 */
+    if (it.full && typeof ans === 'number') h += '<div class="trans" style="margin-bottom:10px"><b>완성 문장</b><span class="jp">' + kruby(it.full) + '</span></div>';
     h += it.opts.map(function (o, i) {
       var cls = 'opt';
       if (typeof ans === 'number') {
@@ -2238,7 +2245,10 @@ function syBind(root) {
       b.addEventListener('click', function () {
         var e = kEntry(b.getAttribute('data-kqa'));
         if (!e) return;
-        toggleMp3('audio/kq_' + e.it.id + '.mp3', b, function () { speak(kqSay(e.it)); });
+        /* 問題8 배열은 안 푼 상태에서 완성 문장을 들려주면 정답이 새므로, 푼 뒤에만 kqf_ 사용 */
+        var done = typeof kStore()[e.it.id] === 'number';
+        var pre = (e.it.star && e.it.full && done) ? 'audio/kqf_' : 'audio/kq_';
+        toggleMp3(pre + e.it.id + '.mp3', b, function () { speak(kqSay(e.it)); });
       });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-kpp]'), function (b) {
