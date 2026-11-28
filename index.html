@@ -1872,9 +1872,19 @@ function syBind(root) {
     var el = document.getElementById('k-' + id);
     if (!el) return false;
     /* 이동 중에는 스크롤 추적이 '풀던 문제' 기록을 중간 카드로 덮어쓰지 않는다 */
-    kJumping = Date.now() + 700;
-    try { el.scrollIntoView({ block: 'center' }); }
-    catch (e) { el.scrollIntoView(); }
+    kJumping = Date.now() + 900;
+    var put = function () {
+      try { el.scrollIntoView({ block: 'center' }); }
+      catch (e) { el.scrollIntoView(); }
+    };
+    put();
+    /* 카드가 아직 화면에 없으면(레이아웃이 늦게 잡힌 경우) 한 번 더 맞춘다 */
+    [220, 520].forEach(function (ms) {
+      setTimeout(function () {
+        var r = el.getBoundingClientRect();
+        if (r.bottom < 120 || r.top > window.innerHeight - 120) { put(); kJumping = Date.now() + 400; }
+      }, ms);
+    });
     el.classList.remove('kflash');
     void el.offsetWidth;
     el.classList.add('kflash');
